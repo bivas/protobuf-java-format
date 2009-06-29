@@ -46,7 +46,7 @@ import com.google.protobuf.Descriptors.FieldDescriptor;
  * (c) 2000-04 Orbitz, LLC. All Rights Reserved.
  * 
  * @author eliran.bivas@orbitz.com Eliran Bivas
- * @version $Id: HtmlFormat.java Mar 12, 2009 4:00:33 PM ebivas$
+ * @version $HtmlFormat.java Mar 12, 2009 4:00:33 PM$
  */
 public final class HtmlFormat {
 
