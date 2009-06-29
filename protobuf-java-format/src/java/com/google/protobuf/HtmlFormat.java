@@ -50,6 +50,10 @@ import com.google.protobuf.Descriptors.FieldDescriptor;
  */
 public final class HtmlFormat {
 
+	private static final String MAIN_DIV_STYLE = "color: black; font-size: 14px; font-family: sans-serif; font-weight: bolder; margin-bottom: 10px;";
+	private static final String FIELD_NAME_STYLE = "font-weight: bold; color: #669966;font-size: 14px; font-family: sans-serif;";
+	private static final String FIELD_VALUE_STYLE = "color: #3300FF;font-size: 13px; font-family: sans-serif;";
+	
     /**
      * Outputs a textual representation of the Protocol Message supplied into the parameter output.
      * (This representation is the new version of the classic "ProtocolPrinter" output from the
@@ -66,7 +70,9 @@ public final class HtmlFormat {
         generator.print("<html><head><title>");
         generator.print(message.getDescriptorForType().getFullName());
         generator.print("</title></head><body>");
-        generator.print("<div style=\"color: black; font-size: 14px; font-family: sans-serif; font-weight: bolder; margin-bottom: 10px;\">message : ");
+        generator.print("<div style=\"");
+        generator.print(MAIN_DIV_STYLE);
+        generator.print("\">message : ");
         generator.print(message.getDescriptorForType().getFullName());
         generator.print("</div>");
     }
@@ -90,8 +96,7 @@ public final class HtmlFormat {
             print(message, text);
             return text.toString();
         } catch (IOException e) {
-            throw new RuntimeException("Writing to a StringBuilder threw an IOException (should never "
-                                                       + "happen).",
+            throw new RuntimeException("Writing to a StringBuilder threw an IOException (should never happen).",
                                        e);
         }
     }
@@ -105,8 +110,7 @@ public final class HtmlFormat {
             print(fields, text);
             return text.toString();
         } catch (IOException e) {
-            throw new RuntimeException("Writing to a StringBuilder threw an IOException (should never "
-                                                       + "happen).",
+            throw new RuntimeException("Writing to a StringBuilder threw an IOException (should never happen).",
                                        e);
         }
     }
@@ -135,7 +139,9 @@ public final class HtmlFormat {
                                          Object value,
                                          HtmlGenerator generator) throws IOException {
         if (field.isExtension()) {
-            generator.print("[<span style=\"font-weight: bold; color: #669966;font-size: 14px; font-family: sans-serif;\">");
+            generator.print("[<span style=\"");
+            generator.print(FIELD_NAME_STYLE);
+            generator.print("\">");
             // We special-case MessageSet elements for compatibility with proto1.
             if (field.getContainingType().getOptions().getMessageSetWireFormat()
                 && (field.getType() == FieldDescriptor.Type.MESSAGE) && (field.isOptional())
@@ -147,7 +153,9 @@ public final class HtmlFormat {
             }
             generator.print("</span>]");
         } else {
-            generator.print("<span style=\"font-weight: bold; color: #669966;font-size: 14px; font-family: sans-serif;\">");
+            generator.print("<span style=\"");
+            generator.print(FIELD_NAME_STYLE);
+            generator.print("\">");
             if (field.getType() == FieldDescriptor.Type.GROUP) {
                 // Groups must be serialized with their original capitalization.
                 generator.print(field.getMessageType().getName());
@@ -174,7 +182,9 @@ public final class HtmlFormat {
     }
 
     private static void printFieldValue(FieldDescriptor field, Object value, HtmlGenerator generator) throws IOException {
-        generator.print("<span style=\"color: #3300FF;font-size: 13px; font-family: sans-serif;\">");
+        generator.print("<span style=\"");
+        generator.print(FIELD_VALUE_STYLE);
+        generator.print("\">");
         switch (field.getType()) {
             case INT32:
             case INT64:
