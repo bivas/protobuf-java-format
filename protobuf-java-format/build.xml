@@ -8,6 +8,7 @@
 	<property name="lib" location="${basedir}/lib" />
 	<property name="target" location="${basedir}/target" />
 	<property name="test.src" location="${basedir}/test/src" />
+	<property name="test.proto.src" location="${basedir}/test/src/proto" />
 	<property name="test.class.dir" location="${basedir}/target/test" />
 
 	<property file="${basedir}/build.properties" />
@@ -31,20 +32,24 @@
 	<target name="clean" description="Clean the build and catalina directories">
 		<delete dir="${target}" />
 	</target>
+	
+	<target name="clean.protoc">
+		<delete dir="${test.src}/java/protobuf_unittest" />
+	</target>
 
 	<target name="compile" depends="init" description="Compile the java source">
 		<javac srcdir="${src}" destdir="${target}" debug="true">
 			<classpath refid="classpath" />
 		</javac>
 	</target>
-	
-	<target name="jar" depends="compile" description="pack the complie source into jar">
+
+	<target name="jar" depends="clean,compile" description="pack the complie source into jar">
 		<jar jarfile="${target}/${name}-${version}.jar" basedir="${target}" >
 			<include name="**/*" />
 		</jar>
 	</target>
 
-	<target name="compile.test" depends="compile">
+	<target name="compile.test" depends="compile,compile.protoc">
 		<mkdir dir="${test.class.dir}" />
 		<copy todir="${test.class.dir}" overwrite="true">
 			<fileset dir="${src}/java">
@@ -60,6 +65,22 @@
 			<classpath refid="classpath" />
 		</javac>
 	</target>
+
+	<target name="compile.protoc" depends="clean.protoc" description="Compile protos for test">
+		<pathconvert property="protoFiles" pathsep='" "'>
+			<path>
+				<fileset dir="${test.proto.src}">
+					<include name="**/*.proto" />
+				</fileset>
+			</path>
+		</pathconvert>
+		<exec executable="protoc" failonerror="true" failifexecutionfails="true">
+			<arg line='-I="${test.proto.src}"' />
+			<arg line="--java_out='${test.src}/java'" />
+			<arg line='"${protoFiles}"' />
+		</exec>
+	</target>
+
 	<target name="test" depends="compile.test" description="Run the unit tests">
 		<junit printsummary="yes" haltonfailure="yes" maxmemory="512M" fork="true">
 			<jvmarg value="-XX:MaxPermSize=128m" />
