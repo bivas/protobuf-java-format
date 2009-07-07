@@ -1,30 +1,30 @@
 /* 
-	Copyright (c) 2009, Orbitz LLC
-	All rights reserved.
+    Copyright (c) 2009, Orbitz LLC
+    All rights reserved.
 
-	Redistribution and use in source and binary forms, with or without modification, 
-	are permitted provided that the following conditions are met:
+    Redistribution and use in source and binary forms, with or without modification, 
+    are permitted provided that the following conditions are met:
 
-		* Redistributions of source code must retain the above copyright notice, 
-		  this list of conditions and the following disclaimer.
-		* Redistributions in binary form must reproduce the above copyright notice, 
-		  this list of conditions and the following disclaimer in the documentation 
-		  and/or other materials provided with the distribution.
-		* Neither the name of the Orbitz LLC nor the names of its contributors 
-		  may be used to endorse or promote products derived from this software 
-		  without specific prior written permission.
+        * Redistributions of source code must retain the above copyright notice, 
+          this list of conditions and the following disclaimer.
+        * Redistributions in binary form must reproduce the above copyright notice, 
+          this list of conditions and the following disclaimer in the documentation 
+          and/or other materials provided with the distribution.
+        * Neither the name of the Orbitz LLC nor the names of its contributors 
+          may be used to endorse or promote products derived from this software 
+          without specific prior written permission.
 
-	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-	"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-	LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-	A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-	OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-	SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-	LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-	DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-	THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-	(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-	OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+    "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+    A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+    OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+    SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+    LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+    DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+    THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package com.google.protobuf;
 
@@ -34,9 +34,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import com.google.protobuf.ByteString;
-import com.google.protobuf.Message;
-import com.google.protobuf.UnknownFieldSet;
 import com.google.protobuf.Descriptors.EnumValueDescriptor;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 
@@ -128,7 +125,8 @@ public final class XmlFormat {
     private static void printSingleField(FieldDescriptor field, Object value, XmlGenerator generator) throws IOException {
         if (field.isExtension()) {
             generator.print("<extension type=\"");
-            // We special-case MessageSet elements for compatibility with proto1.
+            // We special-case MessageSet elements for compatibility with
+            // proto1.
             if (field.getContainingType().getOptions().getMessageSetWireFormat()
                 && (field.getType() == FieldDescriptor.Type.MESSAGE) && (field.isOptional())
                 // object equality
@@ -148,7 +146,6 @@ public final class XmlFormat {
             }
             generator.print(">");
         }
-
 
         printFieldValue(field, value, generator);
 
@@ -218,26 +215,36 @@ public final class XmlFormat {
             UnknownFieldSet.Field field = entry.getValue();
 
             final String key = entry.getKey().toString();
-            generator.print("<unknown-field index=\"");
-            generator.print(key);
-            generator.print("\">");
             for (long value : field.getVarintList()) {
-                generator.print(unsignedToString(value));
+                printUnknownField(key, unsignedToString(value), generator);
             }
             for (int value : field.getFixed32List()) {
-                generator.print(String.format((Locale) null, "0x%08x", value));
+                printUnknownField(key, String.format((Locale) null, "0x%08x", value), generator);
             }
             for (long value : field.getFixed64List()) {
-                generator.print(String.format((Locale) null, "0x%016x", value));
+                printUnknownField(key, String.format((Locale) null, "0x%016x", value), generator);
             }
             for (ByteString value : field.getLengthDelimitedList()) {
-                generator.print(escapeBytes(value));
+                printUnknownField(key, escapeBytes(value), generator);
             }
             for (UnknownFieldSet value : field.getGroupList()) {
+                generator.print("<unknown-field index=\"");
+                generator.print(key);
+                generator.print("\">");
                 printUnknownFields(value, generator);
+                generator.print("</unknown-field>");
             }
-            generator.print("</unknown-field>");
         }
+    }
+
+    private static void printUnknownField(CharSequence fieldKey,
+                                          CharSequence fieldValue,
+                                          XmlGenerator generator) throws IOException {
+        generator.print("<unknown-field index=\"");
+        generator.print(fieldKey);
+        generator.print("\">");
+        generator.print(fieldValue);
+        generator.print("</unknown-field>");
     }
 
     /**
@@ -258,7 +265,8 @@ public final class XmlFormat {
         if (value >= 0) {
             return Long.toString(value);
         } else {
-            // Pull off the most-significant bit so that BigInteger doesn't think
+            // Pull off the most-significant bit so that BigInteger doesn't
+            // think
             // the number is negative, then set it again using setBit().
             return BigInteger.valueOf(value & 0x7FFFFFFFFFFFFFFFL).setBit(63).toString();
         }
@@ -576,7 +584,8 @@ public final class XmlFormat {
             }
 
             // Check bounds.
-            // No need to check for 64-bit numbers since they'd have to be 16 chars
+            // No need to check for 64-bit numbers since they'd have to be 16
+            // chars
             // or longer to overflow.
             if (!isLong) {
                 if (isSigned) {
