@@ -44,6 +44,7 @@
 	</target>
 
 	<target name="jar" depends="clean,compile" description="pack the complie source into jar">
+		<copy description="copy LICENSE to jar" file="${basedir}/LICENSE.txt" todir="${target}"/>
 		<jar jarfile="${target}/${name}-${version}.jar" basedir="${target}" >
 			<include name="**/*" />
 		</jar>
