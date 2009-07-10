@@ -22,6 +22,7 @@
 	<path id="classpath.test">
 		<pathelement location="${test.class.dir}" />
 		<path refid="classpath" />
+        <pathelement location="${target}" />
 	</path>
 
 	<!-- BUILD TARGETS -->
@@ -38,7 +39,7 @@
 	</target>
 
 	<target name="compile" depends="init" description="Compile the java source">
-		<javac srcdir="${src}" destdir="${target}" debug="true">
+            <javac srcdir="${src}" destdir="${target}" debug="true">
 			<classpath refid="classpath" />
 		</javac>
 	</target>
@@ -63,7 +64,7 @@
 		</copy>
 
 		<javac srcdir="${test.src}" destdir="${test.class.dir}">
-			<classpath refid="classpath" />
+			<classpath refid="classpath.test" />
 		</javac>
 	</target>
 

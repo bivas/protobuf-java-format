@@ -50,9 +50,11 @@ import com.google.protobuf.Descriptors.FieldDescriptor;
 /**
  * Provide ascii text parsing and formatting support for proto2 instances. The implementation
  * largely follows google/protobuf/text_format.cc.
- * 
+ * <p>
+ * (c) 2000-09 Orbitz, LLC. All Rights Reserved.
+ *
  * @author aantonov@orbitz.com Alex Antonov
- * @author elira.bivas@orbitz.com Eliran Bivas
+ * @author eliran.bivas@orbitz.com Eliran Bivas
  *         <p/>
  *         Based on the original code by:
  * @author wenboz@google.com Wenbo Zhu
