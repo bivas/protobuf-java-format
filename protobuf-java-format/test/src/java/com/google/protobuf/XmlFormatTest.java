@@ -62,6 +62,16 @@ public class XmlFormatTest extends TestCase {
                 XmlFormat.printToString(message));
 
     }
+    
+    public void testPrintUnknownFieldSet() throws Exception {
+        UnknownFieldSet fieldSet = UnknownFieldSet.newBuilder().addField(5,
+                                   UnknownFieldSet.Field.newBuilder().addVarint(1).addFixed32(2).addFixed64(3).addLengthDelimited(ByteString.copyFromUtf8("4")).addGroup(
+                                   UnknownFieldSet.newBuilder().addField(10, 
+                                   UnknownFieldSet.Field.newBuilder().addVarint(5).build()).build()).build()).addField(8,
+                                   UnknownFieldSet.Field.newBuilder().addVarint(1).addVarint(2).addVarint(3).build()).addField(15,
+                                   UnknownFieldSet.Field.newBuilder().addVarint(0xABCDEF1234567890L).addFixed32(0xABCD1234).addFixed64(0xABCDEF1234567890L).build()).build();
+        assertEquals("unknown fields message doesn't match", "<message><unknown-field index=\"5\">1</unknown-field><unknown-field index=\"5\">0x00000002</unknown-field><unknown-field index=\"5\">0x0000000000000003</unknown-field><unknown-field index=\"5\">4</unknown-field><unknown-field index=\"5\"><unknown-field index=\"10\">5</unknown-field></unknown-field><unknown-field index=\"8\">1</unknown-field><unknown-field index=\"8\">2</unknown-field><unknown-field index=\"8\">3</unknown-field><unknown-field index=\"15\">12379813812177893520</unknown-field><unknown-field index=\"15\">0xabcd1234</unknown-field><unknown-field index=\"15\">0xabcdef1234567890</unknown-field></message>",  XmlFormat.printToString(fieldSet));
+    }
 
     public void testParseFromString() throws Exception {
         String xmlText = XmlFormat.printToString(TestUtil.getAllSet());
