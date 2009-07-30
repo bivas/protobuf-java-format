@@ -1,30 +1,30 @@
 /* 
-	Copyright (c) 2009, Orbitz LLC
-	All rights reserved.
+    Copyright (c) 2009, Orbitz LLC
+    All rights reserved.
 
-	Redistribution and use in source and binary forms, with or without modification, 
-	are permitted provided that the following conditions are met:
+    Redistribution and use in source and binary forms, with or without modification, 
+    are permitted provided that the following conditions are met:
 
-		* Redistributions of source code must retain the above copyright notice, 
-		  this list of conditions and the following disclaimer.
-		* Redistributions in binary form must reproduce the above copyright notice, 
-		  this list of conditions and the following disclaimer in the documentation 
-		  and/or other materials provided with the distribution.
-		* Neither the name of the Orbitz LLC nor the names of its contributors 
-		  may be used to endorse or promote products derived from this software 
-		  without specific prior written permission.
+        * Redistributions of source code must retain the above copyright notice, 
+          this list of conditions and the following disclaimer.
+        * Redistributions in binary form must reproduce the above copyright notice, 
+          this list of conditions and the following disclaimer in the documentation 
+          and/or other materials provided with the distribution.
+        * Neither the name of the Orbitz LLC nor the names of its contributors 
+          may be used to endorse or promote products derived from this software 
+          without specific prior written permission.
 
-	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-	"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-	LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-	A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-	OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-	SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-	LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-	DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-	THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-	(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-	OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+    "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+    A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+    OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+    SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+    LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+    DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+    THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package com.google.protobuf;
 
@@ -34,26 +34,24 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import com.google.protobuf.ByteString;
-import com.google.protobuf.Message;
-import com.google.protobuf.UnknownFieldSet;
 import com.google.protobuf.Descriptors.EnumValueDescriptor;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 
 /**
  * Provide ascii html formatting support for proto2 instances.
  * <p>
- * (c) 2000-04 Orbitz, LLC. All Rights Reserved.
+ * (c) 2000-09 Orbitz, LLC. All Rights Reserved.
  * 
  * @author eliran.bivas@orbitz.com Eliran Bivas
  * @version $HtmlFormat.java Mar 12, 2009 4:00:33 PM$
  */
 public final class HtmlFormat {
 
-	private static final String MAIN_DIV_STYLE = "color: black; font-size: 14px; font-family: sans-serif; font-weight: bolder; margin-bottom: 10px;";
-	private static final String FIELD_NAME_STYLE = "font-weight: bold; color: #669966;font-size: 14px; font-family: sans-serif;";
-	private static final String FIELD_VALUE_STYLE = "color: #3300FF;font-size: 13px; font-family: sans-serif;";
-	
+    private static final String META_CONTENT = "<meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\" />";
+    private static final String MAIN_DIV_STYLE = "color: black; font-size: 14px; font-family: sans-serif; font-weight: bolder; margin-bottom: 10px;";
+    private static final String FIELD_NAME_STYLE = "font-weight: bold; color: #669966;font-size: 14px; font-family: sans-serif;";
+    private static final String FIELD_VALUE_STYLE = "color: #3300FF;font-size: 13px; font-family: sans-serif;";
+
     /**
      * Outputs a textual representation of the Protocol Message supplied into the parameter output.
      * (This representation is the new version of the classic "ProtocolPrinter" output from the
@@ -67,7 +65,9 @@ public final class HtmlFormat {
     }
 
     private static void printTitle(final Message message, final HtmlGenerator generator) throws IOException {
-        generator.print("<html><head><title>");
+        generator.print("<html><head>");
+        generator.print(META_CONTENT);
+        generator.print("<title>");
         generator.print(message.getDescriptorForType().getFullName());
         generator.print("</title></head><body>");
         generator.print("<div style=\"");
@@ -82,7 +82,9 @@ public final class HtmlFormat {
      */
     public static void print(UnknownFieldSet fields, Appendable output) throws IOException {
         HtmlGenerator generator = new HtmlGenerator(output);
-        generator.print("<html><head/><body>");
+        generator.print("<html>");
+        generator.print(META_CONTENT);
+        generator.print("</head><body>");
         printUnknownFields(fields, generator);
         generator.print("</body></html>");
     }
@@ -144,9 +146,9 @@ public final class HtmlFormat {
             generator.print("\">");
             // We special-case MessageSet elements for compatibility with proto1.
             if (field.getContainingType().getOptions().getMessageSetWireFormat()
-                && (field.getType() == FieldDescriptor.Type.MESSAGE) && (field.isOptional())
-                // object equality
-                && (field.getExtensionScope() == field.getMessageType())) {
+                            && (field.getType() == FieldDescriptor.Type.MESSAGE) && (field.isOptional())
+                            // object equality
+                            && (field.getExtensionScope() == field.getMessageType())) {
                 generator.print(field.getMessageType().getFullName());
             } else {
                 generator.print(field.getFullName());
@@ -211,7 +213,7 @@ public final class HtmlFormat {
 
             case STRING:
                 generator.print("\"");
-                generator.print(escapeText((String) value));
+                generator.print(value.toString());
                 generator.print("\"");
                 break;
 
@@ -555,7 +557,7 @@ public final class HtmlFormat {
      */
     private static boolean isHex(char c) {
         return (('0' <= c) && (c <= '9')) || (('a' <= c) && (c <= 'f'))
-               || (('A' <= c) && (c <= 'F'));
+        || (('A' <= c) && (c <= 'F'));
     }
 
     /**
