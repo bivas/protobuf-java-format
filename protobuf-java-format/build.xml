@@ -50,6 +50,9 @@
 			<include name="com/**/*" />
 			<include name="**/*.txt" />
 		</jar>
+        <jar  jarfile="${target}/${name}-src-${version}.jar" basedir="${src}/java" >
+            <include name="**/*.java" />
+        </jar>
 	</target>
 
 	<target name="compile.test" depends="compile,compile.protoc">
