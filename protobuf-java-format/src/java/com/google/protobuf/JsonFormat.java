@@ -415,23 +415,26 @@ public final class JsonFormat {
         private int previousLine = 0;
         private int previousColumn = 0;
 
-        private static Pattern WHITESPACE = Pattern.compile("(\\s|(#.*$))+", Pattern.MULTILINE);
-        private static Pattern TOKEN = Pattern.compile("[a-zA-Z_][0-9a-zA-Z_+-]*|" + // an
-                                                                                     // identifier
-                                                       "[0-9+-][0-9a-zA-Z_.+-]*|" + // a number
-                                                       "\"([^\"\n\\\\]|\\\\.)*(\"|\\\\?$)|" + // a
-                                                                                              // double-quoted
-                                                                                              // string
-                                                       "\'([^\"\n\\\\]|\\\\.)*(\'|\\\\?$)", // a
-                                                                                            // single-quoted
-                                                                                            // string
-                                                       Pattern.MULTILINE);
+        // We use possesive quantifiers (*+ and ++) because otherwise the Java
+        // regex matcher has stack overflows on large inputs.
+        private static final Pattern WHITESPACE =
+          Pattern.compile("(\\s|(#.*$))++", Pattern.MULTILINE);
+        private static final Pattern TOKEN = Pattern.compile(
+          "[a-zA-Z_][0-9a-zA-Z_+-]*+|" +                // an identifier
+          "[.]?[0-9+-][0-9a-zA-Z_.+-]*+|" +             // a number
+          "\"([^\"\n\\\\]|\\\\.)*+(\"|\\\\?$)|" +       // a double-quoted string
+          "\'([^\'\n\\\\]|\\\\.)*+(\'|\\\\?$)",         // a single-quoted string
+          Pattern.MULTILINE);
 
-        private static Pattern DOUBLE_INFINITY = Pattern.compile("-?inf(inity)?",
-                                                                 Pattern.CASE_INSENSITIVE);
-        private static Pattern FLOAT_INFINITY = Pattern.compile("-?inf(inity)?f?",
-                                                                Pattern.CASE_INSENSITIVE);
-        private static Pattern FLOAT_NAN = Pattern.compile("nanf?", Pattern.CASE_INSENSITIVE);
+        private static final Pattern DOUBLE_INFINITY = Pattern.compile(
+          "-?inf(inity)?",
+          Pattern.CASE_INSENSITIVE);
+        private static final Pattern FLOAT_INFINITY = Pattern.compile(
+          "-?inf(inity)?f?",
+          Pattern.CASE_INSENSITIVE);
+        private static final Pattern FLOAT_NAN = Pattern.compile(
+          "nanf?",
+          Pattern.CASE_INSENSITIVE);
 
         /**
          * Construct a tokenizer that parses tokens from the given text.

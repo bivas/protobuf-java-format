@@ -1,0 +1,5 @@
+package protobuf_unittest;
+
+option optimize_for = SPEED;
+
+message BigData { required bytes d = 1; }

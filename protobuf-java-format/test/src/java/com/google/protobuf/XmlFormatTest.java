@@ -31,6 +31,7 @@ package com.google.protobuf;
 import junit.framework.TestCase;
 import protobuf_unittest.UnittestProto.TestEmptyMessage;
 import protobuf_unittest.UnittestProto;
+import protobuf_unittest.Bigint;
 
 /**
  * Unit test for {@link XmlFormat}
@@ -87,5 +88,12 @@ public class XmlFormatTest extends TestCase {
         XmlFormat.merge(xmlText, TestUtil.getExtensionRegistry(), builder);
 
         assertEquals(TestUtil.getAllExtensionsSet(), builder.build());
+    }
+
+    public void testStackOverflow() throws Exception {
+        Bigint.BigData bd = Bigint.BigData.newBuilder().setD(ByteString.copyFrom(new byte[1024])).build();
+        String xmlText = XmlFormat.printToString(bd);
+        Bigint.BigData.Builder builder = Bigint.BigData.newBuilder();
+        XmlFormat.merge(xmlText, builder);
     }
 }

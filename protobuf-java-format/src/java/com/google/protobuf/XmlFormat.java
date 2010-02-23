@@ -356,18 +356,18 @@ public final class XmlFormat {
         private int previousLine = 0;
         private int previousColumn = 0;
 
-        private static Pattern WHITESPACE = Pattern.compile("(\\s|(#.*$))+", Pattern.MULTILINE);
-        private static Pattern TOKEN = Pattern.compile("[a-zA-Z_][0-9a-zA-Z_+-]*|" + // an
-                                                                                     // identifier
-                                                       "[0-9+-][0-9a-zA-Z_.+-]*|" + // a number
-                                                       "</|" + // an '</' closing element marker
-                                                       "\"([^\"\n\\\\]|\\\\.)*(\"|\\\\?$)|" + // a
-                                                                                              // double-quoted
-                                                                                              // string
-                                                       "\'([^\"\n\\\\]|\\\\.)*(\'|\\\\?$)", // a
-                                                                                            // single-quoted
-                                                                                            // string
-                                                       Pattern.MULTILINE);
+        // We use possesive quantifiers (*+ and ++) because otherwise the Java
+        // regex matcher has stack overflows on large inputs.
+        private static final Pattern WHITESPACE =
+          Pattern.compile("(\\s|(#.*$))++", Pattern.MULTILINE);
+        private static final Pattern TOKEN = Pattern.compile(
+          "[a-zA-Z_][0-9a-zA-Z_+-]*+|" +                // an identifier
+          "[.]?[0-9+-][0-9a-zA-Z_.+-]*+|" +             // a number
+          "</|" +                                       // an '</' closing element marker
+          "[\\\\0-9]++|" +                              // a \000 byte sequence for bytes handling
+          "\"([^\"\n\\\\]|\\\\.)*+(\"|\\\\?$)|" +       // a double-quoted string
+          "\'([^\'\n\\\\]|\\\\.)*+(\'|\\\\?$)",         // a single-quoted string
+          Pattern.MULTILINE);
 
         private static Pattern DOUBLE_INFINITY = Pattern.compile("-?inf(inity)?",
                                                                  Pattern.CASE_INSENSITIVE);
@@ -706,7 +706,7 @@ public final class XmlFormat {
      */
     public static void merge(Readable input, Message.Builder builder) throws ParseException,
                                                                      IOException {
-        JsonFormat.merge(input, ExtensionRegistry.getEmptyRegistry(), builder);
+        XmlFormat.merge(input, ExtensionRegistry.getEmptyRegistry(), builder);
     }
 
     /**
@@ -1147,7 +1147,7 @@ public final class XmlFormat {
     }
 
     /**
-     * Thrown by {@link JsonFormat#unescapeBytes} and {@link JsonFormat#unescapeText} when an
+     * Thrown by {@link XmlFormat#unescapeBytes} and {@link XmlFormat#unescapeText} when an
      * invalid escape sequence is seen.
      */
     static class InvalidEscapeSequence extends IOException {
