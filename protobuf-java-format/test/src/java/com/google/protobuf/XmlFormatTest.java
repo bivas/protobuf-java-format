@@ -96,4 +96,12 @@ public class XmlFormatTest extends TestCase {
         Bigint.BigData.Builder builder = Bigint.BigData.newBuilder();
         XmlFormat.merge(xmlText, builder);
     }
+
+    public void testSpacesInStringValues() throws Exception {
+        Bigint.TestItem.Builder itemBuilder =  Bigint.TestItem.newBuilder();
+        itemBuilder.setName("name with spaces");
+        String itemTxt = XmlFormat.printToString(itemBuilder.build());
+        itemBuilder = Bigint.TestItem.newBuilder();
+        XmlFormat.merge(itemTxt,  itemBuilder);
+    }
 }

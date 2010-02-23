@@ -361,7 +361,7 @@ public final class XmlFormat {
         private static final Pattern WHITESPACE =
           Pattern.compile("(\\s|(#.*$))++", Pattern.MULTILINE);
         private static final Pattern TOKEN = Pattern.compile(
-          "[a-zA-Z_][0-9a-zA-Z_+-]*+|" +                // an identifier
+          "extension|" + "[a-zA-Z_\\s;@][0-9a-zA-Z_\\s;@+-]*+|" +        // an identifier with special handling for 'extension'
           "[.]?[0-9+-][0-9a-zA-Z_.+-]*+|" +             // a number
           "</|" +                                       // an '</' closing element marker
           "[\\\\0-9]++|" +                              // a \000 byte sequence for bytes handling

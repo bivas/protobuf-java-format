@@ -3,3 +3,7 @@ package protobuf_unittest;
 option optimize_for = SPEED;
 
 message BigData { required bytes d = 1; }
+
+message TestItem{
+     required string  name  = 1;
+}
