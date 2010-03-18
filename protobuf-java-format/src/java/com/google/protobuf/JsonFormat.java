@@ -60,7 +60,7 @@ import com.google.protobuf.Descriptors.FieldDescriptor;
  * @author wenboz@google.com Wenbo Zhu
  * @author kenton@google.com Kenton Varda
  */
-public final class JsonFormat {
+public class JsonFormat {
 
     /**
      * Outputs a textual representation of the Protocol Message supplied into the parameter output.
@@ -112,7 +112,7 @@ public final class JsonFormat {
         }
     }
 
-    private static void print(Message message, JsonGenerator generator) throws IOException {
+    protected static void print(Message message, JsonGenerator generator) throws IOException {
 
         for (Iterator<Map.Entry<FieldDescriptor, Object>> iter = message.getAllFields().entrySet().iterator(); iter.hasNext();) {
             Map.Entry<FieldDescriptor, Object> field = iter.next();
@@ -239,7 +239,7 @@ public final class JsonFormat {
         }
     }
 
-    private static void printUnknownFields(UnknownFieldSet unknownFields, JsonGenerator generator) throws IOException {
+    protected static void printUnknownFields(UnknownFieldSet unknownFields, JsonGenerator generator) throws IOException {
         for (Map.Entry<Integer, UnknownFieldSet.Field> entry : unknownFields.asMap().entrySet()) {
             UnknownFieldSet.Field field = entry.getValue();
 
@@ -309,7 +309,7 @@ public final class JsonFormat {
     /**
      * An inner class for writing text to the output stream.
      */
-    static private final class JsonGenerator {
+    protected static class JsonGenerator {
 
         Appendable output;
         boolean atStartOfLine = true;
@@ -397,7 +397,7 @@ public final class JsonFormat {
      * {@code Matcher.usePattern()}, which is new in Java 1.5.) So, we can use that, at least.
      * Unfortunately, this implies that we need to have the entire input in one contiguous string.
      */
-    private static final class Tokenizer {
+    protected static class Tokenizer {
 
         private final CharSequence text;
         private final Matcher matcher;
@@ -533,6 +533,24 @@ public final class JsonFormat {
 
             char c = currentToken.charAt(0);
             return (('0' <= c) && (c <= '9')) || (c == '-') || (c == '+');
+        }
+
+        /**
+         * Returns {@code true} if the next token is a boolean (true/false), but does not consume it.
+         */
+        public boolean lookingAtBoolean() {
+            if (currentToken.length() == 0) {
+                return false;
+            }
+
+            return ("true".equals(currentToken) || "false".equals(currentToken));
+        }
+
+        /**
+         * @return currentToken to which the Tokenizer is pointing.
+         */
+        public String currentToken() {
+            return currentToken;
         }
 
         /**
@@ -764,9 +782,8 @@ public final class JsonFormat {
     /**
      * Parse a text-format message from {@code input} and merge the contents into {@code builder}.
      */
-    public static void merge(Readable input, Message.Builder builder) throws ParseException,
-                                                                     IOException {
-        JsonFormat.merge(input, ExtensionRegistry.getEmptyRegistry(), builder);
+    public static void merge(Readable input, Message.Builder builder) throws IOException {
+        merge(input, ExtensionRegistry.getEmptyRegistry(), builder);
     }
 
     /**
@@ -782,7 +799,7 @@ public final class JsonFormat {
      */
     public static void merge(Readable input,
                              ExtensionRegistry extensionRegistry,
-                             Message.Builder builder) throws ParseException, IOException {
+                             Message.Builder builder) throws IOException {
         // Read the entire input to a String then parse that.
 
         // If StreamTokenizer were not quite so crippled, or if there were a kind
@@ -798,7 +815,7 @@ public final class JsonFormat {
 
     // TODO(chrisn): See if working around java.io.Reader#read(CharBuffer)
     // overhead is worthwhile
-    private static StringBuilder toStringBuilder(Readable input) throws IOException {
+    protected static StringBuilder toStringBuilder(Readable input) throws IOException {
         StringBuilder text = new StringBuilder();
         CharBuffer buffer = CharBuffer.allocate(BUFFER_SIZE);
         while (true) {
@@ -833,7 +850,7 @@ public final class JsonFormat {
      * Parse a single field from {@code tokenizer} and merge it into {@code builder}. If a ',' is
      * detected after the field ends, the next field will be parsed automatically
      */
-    private static void mergeField(Tokenizer tokenizer,
+    protected static void mergeField(Tokenizer tokenizer,
                                    ExtensionRegistry extensionRegistry,
                                    Message.Builder builder) throws ParseException {
         FieldDescriptor field;
@@ -886,28 +903,63 @@ public final class JsonFormat {
                 field = null;
             }
 
+            // Disabled throwing exception if field not found, since it could be a different version.
             if (field == null) {
-                throw tokenizer.parseExceptionPreviousToken("Message type \"" + type.getFullName()
-                                                            + "\" has no field named \"" + name
-                                                            + "\".");
+                handleMissingField(tokenizer, extensionRegistry, builder);
+                //throw tokenizer.parseExceptionPreviousToken("Message type \"" + type.getFullName()
+                //                                            + "\" has no field named \"" + name
+                //                                            + "\".");
             }
         }
 
-        tokenizer.consume(":");
-        boolean array = tokenizer.tryConsume("[");
+        if (field != null) {
+            tokenizer.consume(":");
+            boolean array = tokenizer.tryConsume("[");
 
-        if (array) {
-            while (!tokenizer.tryConsume("]")) {
+            if (array) {
+                while (!tokenizer.tryConsume("]")) {
+                    handleValue(tokenizer, extensionRegistry, builder, field, extension);
+                    tokenizer.tryConsume(",");
+                }
+            } else {
                 handleValue(tokenizer, extensionRegistry, builder, field, extension);
-                tokenizer.tryConsume(",");
             }
-        } else {
-            handleValue(tokenizer, extensionRegistry, builder, field, extension);
         }
 
         if (tokenizer.tryConsume(",")) {
             // Continue with the next field
             mergeField(tokenizer, extensionRegistry, builder);
+        }
+    }
+
+    private static void handleMissingField(Tokenizer tokenizer,
+                                           ExtensionRegistry extensionRegistry,
+                                           Message.Builder builder) throws ParseException {
+        tokenizer.tryConsume(":");
+        if ("{".equals(tokenizer.currentToken())) {
+            // Message structure
+            tokenizer.consume("{");
+            do {
+                tokenizer.consumeIdentifier();
+                handleMissingField(tokenizer, extensionRegistry, builder);
+            } while (tokenizer.tryConsume(","));
+            tokenizer.consume("}");
+        } else if ("[".equals(tokenizer.currentToken())) {
+            // Collection
+            tokenizer.consume("[");
+            do {
+                handleMissingField(tokenizer, extensionRegistry, builder);
+            } while (tokenizer.tryConsume(","));
+            tokenizer.consume("]");
+        } else { //if (!",".equals(tokenizer.currentToken)){
+            // Primitive value
+            if (tokenizer.lookingAtInteger()) {
+                tokenizer.consumeInt64();
+            } else if (tokenizer.lookingAtBoolean()) {
+                tokenizer.consumeBoolean();
+            } else {
+                tokenizer.consumeString();
+            }
         }
     }
 
