@@ -29,6 +29,7 @@
 package com.google.protobuf;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.nio.CharBuffer;
 import java.util.Iterator;
@@ -953,7 +954,9 @@ public class JsonFormat {
             tokenizer.consume("]");
         } else { //if (!",".equals(tokenizer.currentToken)){
             // Primitive value
-            if (tokenizer.lookingAtInteger()) {
+            if ("null".equals(tokenizer.currentToken())) {
+                tokenizer.consume("null");
+            } else if (tokenizer.lookingAtInteger()) {
                 tokenizer.consumeInt64();
             } else if (tokenizer.lookingAtBoolean()) {
                 tokenizer.consumeBoolean();
@@ -975,15 +978,21 @@ public class JsonFormat {
         } else {
             value = handlePrimitive(tokenizer, field);
         }
-        if (field.isRepeated()) {
-            builder.addRepeatedField(field, value);
-        } else {
-            builder.setField(field, value);
+        if (value != null) {
+            if (field.isRepeated()) {
+                builder.addRepeatedField(field, value);
+            } else {
+                builder.setField(field, value);
+            }
         }
     }
 
     private static Object handlePrimitive(Tokenizer tokenizer, FieldDescriptor field) throws ParseException {
         Object value = null;
+        if ("null".equals(tokenizer.currentToken())) {
+            tokenizer.consume("null");
+            return value;
+        }
         switch (field.getType()) {
             case INT32:
             case SINT32:
@@ -1229,6 +1238,22 @@ public class JsonFormat {
                                     code = code * 16 + digitValue(input.charAt(i));
                                 }
                                 result[pos++] = (byte) code;
+                                break;
+                            case 'u':
+                                // UTF8 escape
+                                code = (16 * 3 * digitValue(input.charAt(i+1))) +
+                                        (16 * 2 * digitValue(input.charAt(i+2))) +
+                                        (16 * digitValue(input.charAt(i+3))) +
+                                        digitValue(input.charAt(i+4));
+                                i = i+4;
+                                try {
+                                    // Get a 2-byte UTF-8 character byte array
+                                    byte[] bytes = String.valueOf((char)code).getBytes("UTF-8");
+                                    result[pos++] = bytes[0];
+                                    result[pos++] = bytes[1];
+                                } catch (UnsupportedEncodingException e) {
+                                    throw new InvalidEscapeSequence(e.getMessage());
+                                }
                                 break;
 
                             default:
