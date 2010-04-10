@@ -27,7 +27,9 @@ public class JsonFormatTest extends TestCase {
     }
 
     public void testUnknown() throws Exception {
-        Bigint.ThreeFields msg = Bigint.ThreeFields.newBuilder().setField1(123).setField2(456).setField3(789).build();
+        Bigint.ThreeFields msg = Bigint.ThreeFields.newBuilder().setField1(123).addField2(456).addField2(789).
+                setField3(Bigint.ThreeFields.Nested.newBuilder().setField1("foo").addField2("bar").addField2("blah").build()).
+                build();
         Bigint.OneField m = Bigint.OneField.parseFrom(msg.toByteArray());
         System.out.println(JsonFormat.printToString(m));
     }

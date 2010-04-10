@@ -19,6 +19,10 @@ message TwoFields {
 
 message ThreeFields {
     optional int32 field1 = 1;
-    optional int32 field2 = 2;
-    optional int32 field3 = 3;
+    repeated int32 field2 = 2;
+    message Nested {
+        optional string field1 = 1;
+        repeated string field2 = 2;
+    }
+    optional Nested field3 = 3;
 }

@@ -247,52 +247,45 @@ public class JsonFormat {
         for (Map.Entry<Integer, UnknownFieldSet.Field> entry : unknownFields.asMap().entrySet()) {
             UnknownFieldSet.Field field = entry.getValue();
 
+            if (firstField) {firstField = false;}
+            else {generator.print(", ");}
+
+            generator.print("\"");
+            generator.print(entry.getKey().toString());
+            generator.print("\"");
+            generator.print(": [");
+
+            boolean firstValue = true;
             for (long value : field.getVarintList()) {
-                if (firstField) {firstField = false;}
+                if (firstValue) {firstValue = false;}
                 else {generator.print(", ");}
-                generator.print("\"");
-                generator.print(entry.getKey().toString());
-                generator.print("\"");
-                generator.print(": ");
                 generator.print(unsignedToString(value));
             }
             for (int value : field.getFixed32List()) {
-                if (firstField) {firstField = false;}
+                if (firstValue) {firstValue = false;}
                 else {generator.print(", ");}
-                generator.print("\"");
-                generator.print(entry.getKey().toString());
-                generator.print("\"");
-                generator.print(": ");
                 generator.print(String.format((Locale) null, "0x%08x", value));
             }
             for (long value : field.getFixed64List()) {
-                if (firstField) {firstField = false;}
+                if (firstValue) {firstValue = false;}
                 else {generator.print(", ");}
-                generator.print("\"");
-                generator.print(entry.getKey().toString());
-                generator.print(": ");
                 generator.print(String.format((Locale) null, "0x%016x", value));
             }
             for (ByteString value : field.getLengthDelimitedList()) {
-                if (firstField) {firstField = false;}
+                if (firstValue) {firstValue = false;}
                 else {generator.print(", ");}
                 generator.print("\"");
-                generator.print(entry.getKey().toString());
-                generator.print("\"");
-                generator.print(": \"");
                 generator.print(escapeBytes(value));
                 generator.print("\"");
             }
             for (UnknownFieldSet value : field.getGroupList()) {
-                if (firstField) {firstField = false;}
+                if (firstValue) {firstValue = false;}
                 else {generator.print(", ");}
-                generator.print("\"");
-                generator.print(entry.getKey().toString());
-                generator.print("\"");
-                generator.print(": {");
+                generator.print("{");
                 printUnknownFields(value, generator);
                 generator.print("}");
             }
+            generator.print("]");
         }
     }
 
