@@ -7,3 +7,18 @@ message BigData { required bytes d = 1; }
 message TestItem{
      required string  name  = 1;
 }
+
+message OneField {
+    optional int32 field1 = 1;
+}
+
+message TwoFields {
+    optional int32 field1 = 1;
+    optional int32 field2 = 2;
+}
+
+message ThreeFields {
+    optional int32 field1 = 1;
+    optional int32 field2 = 2;
+    optional int32 field3 = 3;
+}

@@ -104,4 +104,10 @@ public class XmlFormatTest extends TestCase {
         itemBuilder = Bigint.TestItem.newBuilder();
         XmlFormat.merge(itemTxt,  itemBuilder);
     }
+
+    public void testUnknown() throws Exception {
+        Bigint.ThreeFields msg = Bigint.ThreeFields.newBuilder().setField1(123).setField2(456).setField3(789).build();
+        Bigint.OneField m = Bigint.OneField.parseFrom(msg.toByteArray());
+        System.out.println(XmlFormat.printToString(m));
+    }
 }

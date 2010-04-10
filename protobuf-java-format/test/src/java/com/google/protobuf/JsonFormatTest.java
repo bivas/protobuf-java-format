@@ -15,7 +15,7 @@ public class JsonFormatTest extends TestCase {
 //    private static final String allFieldsSetText = TestUtil.readTextFromFile("xml_format_unittest_data.txt");
 
     public void testPrintToString() throws Exception {
-        //String javaText = JsonFormat.printToString(TestUtil.getAllSet());
+        String javaText = JsonFormat.printToString(TestUtil.getAllSet());
         //assertEquals("json doesn't match", allFieldsSetText, javaText);
     }
 
@@ -24,5 +24,11 @@ public class JsonFormatTest extends TestCase {
         String jsonText = JsonFormat.printToString(bd);
         Bigint.BigData.Builder builder = Bigint.BigData.newBuilder();
         JsonFormat.merge(jsonText, builder);
+    }
+
+    public void testUnknown() throws Exception {
+        Bigint.ThreeFields msg = Bigint.ThreeFields.newBuilder().setField1(123).setField2(456).setField3(789).build();
+        Bigint.OneField m = Bigint.OneField.parseFrom(msg.toByteArray());
+        System.out.println(JsonFormat.printToString(m));
     }
 }
