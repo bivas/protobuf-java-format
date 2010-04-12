@@ -853,6 +853,10 @@ public class JsonFormat {
         }
     }
 
+    private static final Pattern DIGITS = Pattern.compile(
+          "[0-9]",
+          Pattern.CASE_INSENSITIVE);
+
     /**
      * Parse a single field from {@code tokenizer} and merge it into {@code builder}. If a ',' is
      * detected after the field ends, the next field will be parsed automatically
@@ -863,6 +867,7 @@ public class JsonFormat {
         FieldDescriptor field;
         Descriptor type = builder.getDescriptorForType();
         ExtensionRegistry.ExtensionInfo extension = null;
+        boolean unknown = false;
 
         if (tokenizer.tryConsume("[")) {
             // An extension.
@@ -910,6 +915,13 @@ public class JsonFormat {
                 field = null;
             }
 
+            // Last try to lookup by field-index if 'name' is numeric,
+            // which indicates a possible unknown field
+            if (field == null && DIGITS.matcher(name).matches()) {
+                field = type.findFieldByNumber(Integer.parseInt(name));
+                unknown = true;
+            }
+
             // Disabled throwing exception if field not found, since it could be a different version.
             if (field == null) {
                 handleMissingField(tokenizer, extensionRegistry, builder);
@@ -925,11 +937,11 @@ public class JsonFormat {
 
             if (array) {
                 while (!tokenizer.tryConsume("]")) {
-                    handleValue(tokenizer, extensionRegistry, builder, field, extension);
+                    handleValue(tokenizer, extensionRegistry, builder, field, extension, unknown);
                     tokenizer.tryConsume(",");
                 }
             } else {
-                handleValue(tokenizer, extensionRegistry, builder, field, extension);
+                handleValue(tokenizer, extensionRegistry, builder, field, extension, unknown);
             }
         }
 
@@ -976,11 +988,12 @@ public class JsonFormat {
                                     ExtensionRegistry extensionRegistry,
                                     Message.Builder builder,
                                     FieldDescriptor field,
-                                    ExtensionRegistry.ExtensionInfo extension) throws ParseException {
+                                    ExtensionRegistry.ExtensionInfo extension,
+                                    boolean unknown) throws ParseException {
 
         Object value = null;
         if (field.getJavaType() == FieldDescriptor.JavaType.MESSAGE) {
-            value = handleObject(tokenizer, extensionRegistry, builder, field, extension);
+            value = handleObject(tokenizer, extensionRegistry, builder, field, extension, unknown);
         } else {
             value = handlePrimitive(tokenizer, field);
         }
@@ -1079,7 +1092,8 @@ public class JsonFormat {
                                        ExtensionRegistry extensionRegistry,
                                        Message.Builder builder,
                                        FieldDescriptor field,
-                                       ExtensionRegistry.ExtensionInfo extension) throws ParseException {
+                                       ExtensionRegistry.ExtensionInfo extension,
+                                       boolean unknown) throws ParseException {
 
         Object value;
         Message.Builder subBuilder;
@@ -1087,6 +1101,16 @@ public class JsonFormat {
             subBuilder = builder.newBuilderForField(field);
         } else {
             subBuilder = extension.defaultInstance.newBuilderForType();
+        }
+
+        if (unknown) {
+            ByteString data = tokenizer.consumeByteString();
+            try {
+                subBuilder.mergeFrom(data);
+                return subBuilder.build();
+            } catch (InvalidProtocolBufferException e) {
+                throw tokenizer.parseException("Failed to build " + field.getFullName() + " from " + data);
+            }
         }
 
         tokenizer.consume("{");
@@ -1103,8 +1127,7 @@ public class JsonFormat {
             }
         }
 
-        value = subBuilder.build();
-        return value;
+        return subBuilder.build();
     }
 
     // =================================================================
