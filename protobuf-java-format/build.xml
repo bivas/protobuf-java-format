@@ -52,6 +52,7 @@
 		</jar>
         <jar  jarfile="${target}/${name}-src-${version}.jar" basedir="${src}/java" >
             <include name="**/*.java" />
+        	<include name="**/*.txt" />
         </jar>
 	</target>
 

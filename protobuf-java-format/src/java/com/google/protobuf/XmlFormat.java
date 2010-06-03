@@ -1,5 +1,5 @@
 /* 
-    Copyright (c) 2009, Orbitz LLC
+    Copyright (c) 2009, protobuf-java-format
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without modification, 
@@ -10,7 +10,7 @@
         * Redistributions in binary form must reproduce the above copyright notice, 
           this list of conditions and the following disclaimer in the documentation 
           and/or other materials provided with the distribution.
-        * Neither the name of the Orbitz LLC nor the names of its contributors 
+        * Neither the name of the protobuf-java-format nor the names of its contributors 
           may be used to endorse or promote products derived from this software 
           without specific prior written permission.
 
@@ -44,10 +44,10 @@ import com.google.protobuf.Descriptors.FieldDescriptor;
  * Provide ascii text parsing and formatting support for proto2 instances. The implementation
  * largely follows google/protobuf/text_format.cc.
  * <p>
- * (c) 2000-09 Orbitz, LLC. All Rights Reserved.
+ * (c) 2009-10 protobuf-java-format. All Rights Reserved.
  *
+ * @author eliran.bivas@gmail.com Eliran Bivas
  * @author aantonov@orbitz.com Alex Antonov
- * @author eliran.bivas@orbitz.com Eliran Bivas
  *         <p/>
  *         Based on the original code by:
  * @author wenboz@google.com Wenbo Zhu

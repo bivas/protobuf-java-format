@@ -36,7 +36,7 @@ import protobuf_unittest.Bigint;
 /**
  * Unit test for {@link XmlFormat}
  *
- * @author eliran.bivas@orbitz.com Eliran Bivas
+ * @author eliran.bivas@gmail.com Eliran Bivas
  *         <p/>
  *         Based on {@link TextFormat} originally written by:
  * @author wenboz@google.com (Wenbo Zhu)

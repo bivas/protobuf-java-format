@@ -6,19 +6,13 @@ import protobuf_unittest.Bigint;
 /**
  * Unit test for {@link XmlFormat}
  *
- * @author eliran.bivas@orbitz.com Eliran Bivas
+ * @author eliran.bivas@gmail.com Eliran Bivas
  *         <p/>
  *         Based on {@link TextFormat} originally written by:
  * @author wenboz@google.com (Wenbo Zhu)
  */
 public class JsonFormatTest extends TestCase {
-//    private static final String allFieldsSetText = TestUtil.readTextFromFile("xml_format_unittest_data.txt");
     private static final String unknownFieldsText = TestUtil.readTextFromFile("json_format_unknown_fields_data.txt"); 
-
-    public void testPrintToString() throws Exception {
-        String javaText = JsonFormat.printToString(TestUtil.getAllSet());
-        //assertEquals("json doesn't match", allFieldsSetText, javaText);
-    }
 
     public void testStackOverflow() throws Exception {
         Bigint.BigData bd = Bigint.BigData.newBuilder().setD(ByteString.copyFrom(new byte[1024])).build();
