@@ -1275,14 +1275,7 @@ public class JsonFormat {
                                         (16 * digitValue(input.charAt(i+3))) +
                                         digitValue(input.charAt(i+4));
                                 i = i+4;
-                                try {
-                                    // Get a 2-byte UTF-8 character byte array
-                                    byte[] bytes = String.valueOf((char)code).getBytes("UTF-8");
-                                    result[pos++] = bytes[0];
-                                    result[pos++] = bytes[1];
-                                } catch (UnsupportedEncodingException e) {
-                                    throw new InvalidEscapeSequence(e.getMessage());
-                                }
+                                result[pos++] = (byte) code;
                                 break;
 
                             default:
