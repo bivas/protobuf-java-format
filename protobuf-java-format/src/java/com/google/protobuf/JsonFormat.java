@@ -1184,15 +1184,25 @@ public class JsonFormat {
                     if (b >= 0x20) {
                         builder.append((char) b);
                     } else {
-                        builder.append("\\u");
-						final String hexString = HexUtils.getHexString(b, 4);
-						builder.append(hexString);
+						final String unicodeString = unicodeEscaped((char) b);
+						builder.append(unicodeString);
                     }
                     break;
             }
         }
         return builder.toString();
     }
+	
+	static String unicodeEscaped(char ch) {
+		if (ch < 0x10) {
+			return "\\u000" + Integer.toHexString(ch);
+		} else if (ch < 0x100) {
+			return "\\u00" + Integer.toHexString(ch);
+		} else if (ch < 0x1000) {
+			return "\\u0" + Integer.toHexString(ch);
+		}
+		return "\\u" + Integer.toHexString(ch);
+	}
 
     /**
      * Un-escape a byte sequence as escaped using
