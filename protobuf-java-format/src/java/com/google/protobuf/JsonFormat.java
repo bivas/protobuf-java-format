@@ -852,6 +852,10 @@ public class JsonFormat {
         while (!tokenizer.tryConsume("}")) { // Continue till the object is done
             mergeField(tokenizer, extensionRegistry, builder);
         }
+        // Test to make sure the tokenizer has reached the end of the stream.
+        if (!tokenizer.atEnd()) {
+            throw tokenizer.parseException("Expecting the end of the stream, but there seems to be more data!  Check the input for a valid JSON format.");
+        }
     }
 
     private static final Pattern DIGITS = Pattern.compile(

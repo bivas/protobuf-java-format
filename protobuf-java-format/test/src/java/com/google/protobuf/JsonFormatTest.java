@@ -12,7 +12,9 @@ import protobuf_unittest.Bigint;
  * @author wenboz@google.com (Wenbo Zhu)
  */
 public class JsonFormatTest extends TestCase {
-    private static final String unknownFieldsText = TestUtil.readTextFromFile("json_format_unknown_fields_data.txt"); 
+    private static final String unknownFieldsText = TestUtil.readTextFromFile("json_format_unknown_fields_data.txt");
+    private static final String bogusJson = "{\"name\": \"!@##&*)&*(&*&*&*\"}{))_+__+$$(((((((((((((((()!?:\">\"}";
+    private static final String validJson = "{\"name\": \"!@##&*)&*(&*&*&*\\\"}{))_+__+$$(((((((((((((((()!?:\\\">\"}";
 
     public void testStackOverflow() throws Exception {
         Bigint.BigData bd = Bigint.BigData.newBuilder().setD(ByteString.copyFrom(new byte[1024])).build();
@@ -33,5 +35,20 @@ public class JsonFormatTest extends TestCase {
         Bigint.ThreeFields.Builder builder = Bigint.ThreeFields.newBuilder();
         JsonFormat.merge(javaText, builder);
         assertEquals(threeFields, builder.build());
+    }
+
+    public void testInvalidJson() throws Exception {
+        Bigint.TestItem msg = Bigint.TestItem.newBuilder().setName("!@##&*)&*(&*&*&*\"}{))_+__+$$(((((((((((((((()!?:\">").build();
+        String javaText = JsonFormat.printToString(msg);
+        System.out.println(javaText);
+        assertEquals(javaText, validJson);
+
+        Bigint.TestItem.Builder builder = Bigint.TestItem.newBuilder();
+        try {
+            JsonFormat.merge(bogusJson, builder);
+            fail("Expect parsing error due to malformed JSON");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
