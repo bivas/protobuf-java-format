@@ -1,7 +1,11 @@
 package com.google.protobuf;
 
+import java.util.Arrays;
+
 import junit.framework.TestCase;
 import protobuf_unittest.Bigint;
+import protobuf_unittest.UnittestProto;
+import protobuf_unittest.UnittestProto.TestNestedExtension;
 
 /**
  * Unit test for {@link XmlFormat}
@@ -50,5 +54,64 @@ public class JsonFormatTest extends TestCase {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void test_stringValueContainsSurrogatePair() throws Exception {
+        String testString = new String(Character.toChars(0x1D11E));
+        Bigint.TestItem msg = Bigint.TestItem.newBuilder().setName(testString).build();
+        String json = JsonFormat.printToString(msg);
+        // Assert that the surrogate pair was encoded
+        assertEquals("{\"name\": \"\\ud834\\udd1e\"}", json);
+    
+        // Assert that we can read the string back into a msg
+        Bigint.TestItem.Builder builder = Bigint.TestItem.newBuilder();
+        JsonFormat.merge(json, builder);
+        assertEquals(msg, builder.build());
+    }
+
+    public void test_stringValueContainsControlCharacters() throws Exception {
+        char[] ctrlChars = new char[0x001F + 1];
+        for(char c = 0; c < 0x001F+1; c++) {
+          ctrlChars[c] = c;
+        }
+        String testString = new String(ctrlChars);
+        Bigint.TestItem msg = Bigint.TestItem.newBuilder().setName(testString).build();
+        String json = JsonFormat.printToString(msg);
+    
+        // Assert that we can read the string back into a msg
+        Bigint.TestItem.Builder builder = Bigint.TestItem.newBuilder();
+        JsonFormat.merge(json, builder);
+        Bigint.TestItem item = builder.build();
+        assertEquals(msg, item);
+        assertTrue(Arrays.equals(ctrlChars, item.getName().toCharArray()));
+    }
+
+    public void test_stringValueContainsCharactersThatShouldBeEscaped() throws Exception {
+    	// input string is \"'
+        String testString = new String("\\\"'");
+        Bigint.TestItem msg = Bigint.TestItem.newBuilder().setName(testString).build();
+        String json = JsonFormat.printToString(msg);
+        // Assert that reverse-solidus and double quotes where escaped using a reverse-solidus
+
+        // Expected string is {"name": "\\\"'"}
+        assertEquals("{\"name\": \"\\\\\\\"\'\"}", json);
+
+        // Assert that we can read the string back into a msg
+        Bigint.TestItem.Builder builder = Bigint.TestItem.newBuilder();
+        JsonFormat.merge(json, builder);
+        assertEquals(msg, builder.build());
+    }
+    
+    public void test_nestedExtension() throws Exception {
+        ExtensionRegistry registry = ExtensionRegistry.newInstance();
+        UnittestProto.registerAllExtensions(registry);
+        
+        UnittestProto.TestAllExtensions tae = UnittestProto.TestAllExtensions.newBuilder().setExtension(TestNestedExtension.test, "aTest").build();
+        String output = JsonFormat.printToString(tae);
+  
+        UnittestProto.TestAllExtensions.Builder builder = UnittestProto.TestAllExtensions.newBuilder();
+        JsonFormat.merge(output, registry, builder);
+        String value = builder.build().getExtension(TestNestedExtension.test);
+        assertEquals("aTest", value);
     }
 }

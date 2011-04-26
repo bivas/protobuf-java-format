@@ -29,9 +29,10 @@
 package com.google.protobuf;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.nio.CharBuffer;
+import java.text.CharacterIterator;
+import java.text.StringCharacterIterator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -39,15 +40,10 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.google.protobuf.ByteString;
-import com.google.protobuf.ExtensionRegistry;
-import com.google.protobuf.Message;
-import com.google.protobuf.UnknownFieldSet;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.EnumDescriptor;
 import com.google.protobuf.Descriptors.EnumValueDescriptor;
 import com.google.protobuf.Descriptors.FieldDescriptor;
-import com.google.protobuf.util.HexUtils;
 
 /**
  * Provide ascii text parsing and formatting support for proto2 instances. The implementation
@@ -137,7 +133,6 @@ public class JsonFormat {
                                          Object value,
                                          JsonGenerator generator) throws IOException {
         if (field.isExtension()) {
-            generator.print("[");
             generator.print("\"");
             // We special-case MessageSet elements for compatibility with proto1.
             if (field.getContainingType().getOptions().getMessageSetWireFormat()
@@ -149,7 +144,6 @@ public class JsonFormat {
                 generator.print(field.getFullName());
             }
             generator.print("\"");
-            generator.print("]");
         } else {
             generator.print("\"");
             if (field.getType() == FieldDescriptor.Type.GROUP) {
@@ -710,8 +704,25 @@ public class JsonFormat {
          * throw a {@link ParseException}.
          */
         public String consumeString() throws ParseException {
-            return consumeByteString().toStringUtf8();
-        }
+          char quote = currentToken.length() > 0 ? currentToken.charAt(0) : '\0';
+          if ((quote != '\"') && (quote != '\'')) {
+              throw parseException("Expected string.");
+          }
+
+          if ((currentToken.length() < 2)
+              || (currentToken.charAt(currentToken.length() - 1) != quote)) {
+              throw parseException("String missing ending quote.");
+          }
+
+          try {
+              String escaped = currentToken.substring(1, currentToken.length() - 1);
+              String result = unescapeText(escaped);
+              nextToken();
+              return result;
+          } catch (InvalidEscapeSequence e) {
+              throw parseException(e.getMessage());
+          }
+      }
 
         /**
          * If the next token is a string, consume it, unescape it as a
@@ -874,66 +885,52 @@ public class JsonFormat {
         ExtensionRegistry.ExtensionInfo extension = null;
         boolean unknown = false;
 
-        if (tokenizer.tryConsume("[")) {
-            // An extension.
-            StringBuilder name = new StringBuilder(tokenizer.consumeIdentifier());
-            while (tokenizer.tryConsume(".")) {
-                name.append(".");
-                name.append(tokenizer.consumeIdentifier());
-            }
+        String name = tokenizer.consumeIdentifier();
+        field = type.findFieldByName(name);
 
-            extension = extensionRegistry.findExtensionByName(name.toString());
-
-            if (extension == null) {
-                throw tokenizer.parseExceptionPreviousToken("Extension \""
-                                                            + name
-                                                            + "\" not found in the ExtensionRegistry.");
-            } else if (extension.descriptor.getContainingType() != type) {
-                throw tokenizer.parseExceptionPreviousToken("Extension \"" + name
-                                                            + "\" does not extend message type \""
-                                                            + type.getFullName() + "\".");
-            }
-
-            tokenizer.consume("]");
-
-            field = extension.descriptor;
-        } else {
-            String name = tokenizer.consumeIdentifier();
-            field = type.findFieldByName(name);
-
-            // Group names are expected to be capitalized as they appear in the
-            // .proto file, which actually matches their type names, not their field
-            // names.
-            if (field == null) {
-                // Explicitly specify US locale so that this code does not break when
-                // executing in Turkey.
-                String lowerName = name.toLowerCase(Locale.US);
-                field = type.findFieldByName(lowerName);
-                // If the case-insensitive match worked but the field is NOT a group,
-                if ((field != null) && (field.getType() != FieldDescriptor.Type.GROUP)) {
-                    field = null;
-                }
-            }
-            // Again, special-case group names as described above.
-            if ((field != null) && (field.getType() == FieldDescriptor.Type.GROUP)
-                && !field.getMessageType().getName().equals(name)) {
+        // Group names are expected to be capitalized as they appear in the
+        // .proto file, which actually matches their type names, not their field
+        // names.
+        if (field == null) {
+            // Explicitly specify US locale so that this code does not break when
+            // executing in Turkey.
+            String lowerName = name.toLowerCase(Locale.US);
+            field = type.findFieldByName(lowerName);
+            // If the case-insensitive match worked but the field is NOT a group,
+            if ((field != null) && (field.getType() != FieldDescriptor.Type.GROUP)) {
                 field = null;
             }
+        }
+        // Again, special-case group names as described above.
+        if ((field != null) && (field.getType() == FieldDescriptor.Type.GROUP)
+            && !field.getMessageType().getName().equals(name)) {
+            field = null;
+        }
 
-            // Last try to lookup by field-index if 'name' is numeric,
-            // which indicates a possible unknown field
-            if (field == null && DIGITS.matcher(name).matches()) {
-                field = type.findFieldByNumber(Integer.parseInt(name));
-                unknown = true;
+        // Last try to lookup by field-index if 'name' is numeric,
+        // which indicates a possible unknown field
+        if (field == null && DIGITS.matcher(name).matches()) {
+            field = type.findFieldByNumber(Integer.parseInt(name));
+            unknown = true;
+        }
+        
+        // Finally, look for extensions
+        extension = extensionRegistry.findExtensionByName(name);
+        if (extension != null) {
+            if (extension.descriptor.getContainingType() != type) {
+              throw tokenizer.parseExceptionPreviousToken("Extension \"" + name
+                                                          + "\" does not extend message type \""
+                                                          + type.getFullName() + "\".");
             }
+            field = extension.descriptor;
+        }
 
-            // Disabled throwing exception if field not found, since it could be a different version.
-            if (field == null) {
-                handleMissingField(tokenizer, extensionRegistry, builder);
-                //throw tokenizer.parseExceptionPreviousToken("Message type \"" + type.getFullName()
-                //                                            + "\" has no field named \"" + name
-                //                                            + "\".");
-            }
+        // Disabled throwing exception if field not found, since it could be a different version.
+        if (field == null) {
+            handleMissingField(tokenizer, extensionRegistry, builder);
+            //throw tokenizer.parseExceptionPreviousToken("Message type \"" + type.getFullName()
+            //                                            + "\" has no field named \"" + name
+            //                                            + "\".");
         }
 
         if (field != null) {
@@ -1322,20 +1319,133 @@ public class JsonFormat {
     }
 
     /**
-     * Like {@link #escapeBytes(com.google.protobuf.ByteString)}, but escapes a text string.
-     * Non-ASCII characters are first encoded as UTF-8, then each byte is escaped individually as a
-     * 3-digit octal escape. Yes, it's weird.
+     * Implements JSON string escaping as specified <a href="http://www.ietf.org/rfc/rfc4627.txt">here</a>.
+     * <ul>
+     *  <li>The following characters are escaped by prefixing them with a '\' : \b,\f,\n,\r,\t,\,"</li> 
+     *  <li>Other control characters in the range 0x0000-0x001F are escaped using the \\uXXXX notation</li>
+     *  <li>UTF-16 surrogate pairs are encoded using the \\uXXXX\\uXXXX notation</li>
+     *  <li>any other character is printed as-is</li>
+     * </ul>
      */
     static String escapeText(String input) {
-        return escapeBytes(ByteString.copyFromUtf8(input));
+        StringBuilder builder = new StringBuilder(input.length());
+        CharacterIterator iter = new StringCharacterIterator(input);
+        for(char c = iter.first(); c != CharacterIterator.DONE; c = iter.next()) {
+            switch(c) {
+                case '\b':
+                  builder.append("\\b");
+                  break;
+                case '\f':
+                  builder.append("\\f");
+                  break;
+                case '\n':
+                  builder.append("\\n");
+                  break;
+                case '\r':
+                  builder.append("\\r");
+                  break;
+                case '\t':
+                  builder.append("\\t");
+                  break;
+                case '\\':
+                  builder.append("\\\\");
+                  break;
+                case '"':
+                  builder.append("\\\"");
+                  break;
+                default:
+                  // Check for other control characters
+                  if(c >= 0x0000 && c <= 0x001F) {
+                      appendEscapedUnicode(builder, c);
+                  } else if(Character.isHighSurrogate(c)) {
+                      // Encode the surrogate pair using 2 six-character sequence (\\uXXXX\\uXXXX)
+                      appendEscapedUnicode(builder, c);
+                      c = iter.next();
+                      if(c == CharacterIterator.DONE) throw new IllegalArgumentException("invalid unicode string: unexpected high surrogate pair value without corresponding low value.");
+                      appendEscapedUnicode(builder, c);
+                  } else {
+                      // Anything else can be printed as-is
+                      builder.append(c);
+                  }
+                  break;
+            }
+        }
+        return builder.toString();
+    }
+
+    static void appendEscapedUnicode(StringBuilder builder, char ch) {
+      String prefix = "\\u";
+      if(ch < 0x10) {
+        prefix = "\\u000";
+      } else if(ch < 0x100) {
+        prefix = "\\u00";
+      } else if(ch < 0x1000) {
+        prefix = "\\u0";
+      }
+      builder.append(prefix).append(Integer.toHexString(ch));
     }
 
     /**
-     * Un-escape a text string as escaped using {@link #escapeText(String)}. Two-digit hex escapes
-     * (starting with "\x") are also recognized.
+     * Un-escape a text string as escaped using {@link #escapeText(String)}.
      */
     static String unescapeText(String input) throws InvalidEscapeSequence {
-        return unescapeBytes(input).toStringUtf8();
+      StringBuilder builder = new StringBuilder();
+      char[] array = input.toCharArray();
+      for(int i = 0; i < array.length; i++) {
+        char c = array[i];
+        if(c == '\\') {
+          if(i + 1 < array.length) {
+            ++i;
+            c = array[i];
+            switch(c) {
+            case 'b':
+              builder.append('\b');
+              break;
+            case 'f':
+              builder.append('\f');
+              break;
+            case 'n':
+              builder.append('\n');
+              break;
+            case 'r':
+              builder.append('\r');
+              break;
+            case 't':
+              builder.append('\t');
+              break;
+            case '\\':
+              builder.append('\\');
+              break;
+            case '"':
+              builder.append('\"');
+              break;
+            case '\'':
+              builder.append('\'');
+              break;
+            case 'u':
+              // read the next 4 chars
+              if(i + 4 < array.length) {
+                ++i;
+                int code = Integer.parseInt(new String(array, i, 4), 16);
+                // this cast is safe because we know how many chars we read
+                builder.append((char)code);
+                i += 3;
+              } else {
+                throw new InvalidEscapeSequence("Invalid escape sequence: '\\u' at end of string.");
+              }
+              break;
+            default:
+              throw new InvalidEscapeSequence("Invalid escape sequence: '\\" + c + "'");
+            }
+          } else {
+            throw new InvalidEscapeSequence("Invalid escape sequence: '\\' at end of string.");
+          }
+        } else {
+          builder.append(c);
+        }
+      }
+
+      return builder.toString();
     }
 
     /**
