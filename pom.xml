@@ -1,0 +1,154 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.sonatype.oss</groupId>
+		<artifactId>oss-parent</artifactId>
+		<version>7</version>
+	</parent>
+	<groupId>com.googlecode.protobuf</groupId>
+	<artifactId>protobuf-java-format</artifactId>
+	<name>protobuf-java-format</name>
+	<version>1.2</version>
+	<description>Provide serialization and de-serialization of different formats based on Google’s protobuf Message. Enables overriding the default (byte array) output to text based formats such as XML, JSON and HTML.</description>
+	<url>http://code.google.com/p/protobuf-java-format/</url>
+	<packaging>jar</packaging>
+	<scm>
+		<connection>scm:svn:http://protobuf-java-format.googlecode.com/svn/trunk</connection>
+		<url>http://protobuf-java-format.googlecode.com/</url>
+	</scm>
+	<licenses>
+		<license>
+			<name>New BSD License</name>
+			<url>http://www.opensource.org/licenses/bsd-license.php</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+	<issueManagement>
+		<system>issue tracker</system>
+		<url>http://code.google.com/p/protobuf-java-format/issues</url>
+	</issueManagement>
+	<developers>
+		<developer>
+			<id>bivas</id>
+			<name>Eliran Bivas</name>
+			<email>eliran.bivas@gmail.com</email>
+			<roles>
+				<role>owner</role>
+			</roles>
+		</developer>
+	</developers>
+	<dependencies>
+		<dependency>
+			<groupId>com.google.protobuf</groupId>
+			<artifactId>protobuf-java</artifactId>
+			<version>2.3.0</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.codehaus.jackson</groupId>
+			<artifactId>jackson-smile</artifactId>
+			<version>1.8.0</version>
+			<scope>provided</scope>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.8.2</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.easymock</groupId>
+			<artifactId>easymock</artifactId>
+			<version>3.0</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+	<properties>
+		<protobuf.src>${project.basedir}/../protobuf</protobuf.src>
+		<protobuf.java.src>${protobuf.src}/java</protobuf.java.src>
+	</properties>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.1</version>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+					<encoding>UTF-8</encoding>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>generate-test-sources</id>
+						<phase>generate-test-sources</phase>
+						<configuration>
+							<tasks>
+								<mkdir dir="target/generated-test-sources" />
+								<exec executable="protoc" failonerror="true">
+									<arg value="--java_out=${project.basedir}/src/test/java" />
+									<arg value="--proto_path=${project.basedir}/src/test/resources" />
+									<arg value="${project.basedir}/src/test/resources/proto/unittest.proto" />
+									<arg value="${project.basedir}/src/test/resources/proto/unittest_import.proto" />
+									<arg value="${project.basedir}/src/test/resources/proto/unittest_couchdb.proto" />
+								</exec>
+							</tasks>
+							<testSourceRoot>target/generated-test-sources</testSourceRoot>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-gpg-plugin</artifactId>
+				<version>1.1</version>
+				<executions>
+					<execution>
+						<id>sign-artifacts</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+	<profiles>
+		<profile>
+			<id>release-sign-artifacts</id>
+			<activation>
+				<property>
+					<name>performRelease</name>
+					<value>true</value>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>1.1</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+</project>
