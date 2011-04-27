@@ -100,35 +100,18 @@
 						<configuration>
 							<tasks>
 								<mkdir dir="target/generated-test-sources" />
-								<exec executable="protoc" failonerror="true">
+								<exec executable="${protoc}" failonerror="true">
 									<arg value="--java_out=${project.basedir}/src/test/java" />
 									<arg value="--proto_path=${project.basedir}/src/test/resources" />
-									<arg
-										value="${project.basedir}/src/test/resources/proto/unittest.proto" />
-									<arg
-										value="${project.basedir}/src/test/resources/proto/unittest_import.proto" />
-									<arg
-										value="${project.basedir}/src/test/resources/proto/unittest_couchdb.proto" />
+									<arg value="${project.basedir}/src/test/resources/proto/unittest.proto" />
+									<arg value="${project.basedir}/src/test/resources/proto/unittest_import.proto" />
+									<arg value="${project.basedir}/src/test/resources/proto/unittest_couchdb.proto" />
 								</exec>
 							</tasks>
 							<testSourceRoot>target/generated-test-sources</testSourceRoot>
 						</configuration>
 						<goals>
 							<goal>run</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-gpg-plugin</artifactId>
-				<version>1.1</version>
-				<executions>
-					<execution>
-						<id>sign-artifacts</id>
-						<phase>verify</phase>
-						<goals>
-							<goal>sign</goal>
 						</goals>
 					</execution>
 				</executions>
@@ -140,10 +123,13 @@
 			<id>release-sign-artifacts</id>
 			<activation>
 				<property>
-					<name>performRelease</name>
+					<name>signArtifacts</name>
 					<value>true</value>
 				</property>
 			</activation>
+			<properties>
+				<protoc>protoc</protoc>
+			</properties>
 			<build>
 				<plugins>
 					<plugin>
@@ -162,6 +148,31 @@
 					</plugin>
 				</plugins>
 			</build>
+		</profile>
+		<profile>
+			<id>protoc-dev</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+				<property>
+					<name>env</name>
+					<value>dev</value>
+				</property>
+			</activation>
+			<properties>
+				<protoc>protoc</protoc>
+			</properties>
+		</profile>
+		<profile>
+			<id>protoc-ci</id>
+			<activation>
+				<property>
+					<name>env</name>
+					<value>ci</value>
+				</property>
+			</activation>
+			<properties>
+				<protoc>${WORKSPACE}/protoc</protoc>
+			</properties>
 		</profile>
 	</profiles>
 </project>
