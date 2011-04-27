@@ -1,19 +1,15 @@
 package com.google.protobuf;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.util.Arrays;
-
+import com.google.protobuf.test.UnittestImport.ImportMessage;
 import org.junit.Test;
-
 import protobuf_unittest.UnittestProto;
 import protobuf_unittest.UnittestProto.OneString;
 import protobuf_unittest.UnittestProto.TestAllTypes;
 import protobuf_unittest.UnittestProto.TestNestedExtension;
 
-import com.google.protobuf.test.UnittestImport.ImportMessage;
+import java.util.Arrays;
+
+import static org.junit.Assert.*;
 
 /**
  * Unit test for {@link XmlFormat}
@@ -124,5 +120,19 @@ public class JsonFormatTest {
         JsonFormat.merge(output, registry, builder);
         String value = builder.build().getExtension(TestNestedExtension.test);
         assertEquals("aTest", value);
+    }
+
+    @Test
+    public void test_chineseCharacters() throws Exception {
+        String data = "検索jan5検索.8@test.relay.symantec.com";
+        String testString = "{\"data\":\"" + data + "\"}";
+
+        OneString.Builder builder = OneString.newBuilder();
+        JsonFormat.merge(testString, builder);
+        OneString msg = builder.build();
+
+        System.out.println(msg.getData());
+
+        assertEquals(data, msg.getData());
     }
 }
