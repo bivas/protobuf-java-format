@@ -129,7 +129,6 @@ public class SmileFormatTest {
     
     // test a simple round trip
     @Test
-    @Ignore
     public void testAllFieldsSet() throws Exception {
     	ByteArrayOutputStream output = new ByteArrayOutputStream();
     	TestAllTypes allTypes = TestUtil.getAllSet();

@@ -6,10 +6,10 @@
 		<artifactId>oss-parent</artifactId>
 		<version>7</version>
 	</parent>
-	<groupId>com.googlecode.protobuf</groupId>
+	<groupId>com.googlecode.protobuf-java-format</groupId>
 	<artifactId>protobuf-java-format</artifactId>
 	<name>protobuf-java-format</name>
-	<version>1.2</version>
+	<version>1.2-SNAPSHOT</version>
 	<description>Provide serialization and de-serialization of different formats based on Google’s protobuf Message. Enables overriding the default (byte array) output to text based formats such as XML, JSON and HTML.</description>
 	<url>http://code.google.com/p/protobuf-java-format/</url>
 	<packaging>jar</packaging>
@@ -30,7 +30,7 @@
 	</issueManagement>
 	<developers>
 		<developer>
-			<id>bivas</id>
+			<id>eliran.bivas</id>
 			<name>Eliran Bivas</name>
 			<email>eliran.bivas@gmail.com</email>
 			<roles>
@@ -48,7 +48,7 @@
 		<dependency>
 			<groupId>org.codehaus.jackson</groupId>
 			<artifactId>jackson-smile</artifactId>
-			<version>1.8.0</version>
+			<version>1.7.5</version>
 			<scope>provided</scope>
 			<optional>true</optional>
 		</dependency>
@@ -65,10 +65,6 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-	<properties>
-		<protobuf.src>${project.basedir}/../protobuf</protobuf.src>
-		<protobuf.java.src>${protobuf.src}/java</protobuf.java.src>
-	</properties>
 	<build>
 		<plugins>
 			<plugin>
