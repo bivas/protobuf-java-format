@@ -25,7 +25,7 @@ public class JavaPropsFormatTest {
 
         String javaText = JavaPropsFormat.printToString(msg);
 
-        System.out.println(javaText);
+        //System.out.println(javaText);
 
         UnittestMultiNestedProto.Outer.Builder builder = UnittestMultiNestedProto.Outer.newBuilder();
         JavaPropsFormat.merge(javaText, builder);

@@ -35,7 +35,7 @@ public class JsonFormatTest {
     public void testUnknown() throws Exception {
     	TestAllTypes allTypes = TestAllTypes.newBuilder().setDefaultInt32(123).setOptionalInt64(456l).setOptionalString("foo").setOptionalImportMessage(ImportMessage.newBuilder().setD(123)).build();
         String javaText = JsonFormat.printToString(allTypes);
-        System.out.println(javaText);
+        //System.out.println(javaText);
         assertEquals("json doesn't match", unknownFieldsText, javaText);
 
         TestAllTypes.Builder builder = TestAllTypes.newBuilder();
@@ -47,7 +47,7 @@ public class JsonFormatTest {
     public void testInvalidJson() throws Exception {
     	TestAllTypes msg = TestAllTypes.newBuilder().setDefaultString("!@##&*)&*(&*&*&*\"}{))_+__+$$(((((((((((((((()!?:\">").build();
         String javaText = JsonFormat.printToString(msg);
-        System.out.println(javaText);
+        //System.out.println(javaText);
         assertEquals(javaText, validJson);
 
         TestAllTypes.Builder builder = TestAllTypes.newBuilder();
@@ -131,7 +131,7 @@ public class JsonFormatTest {
         JsonFormat.merge(testString, builder);
         OneString msg = builder.build();
 
-        System.out.println(msg.getData());
+        //System.out.println(msg.getData());
 
         assertEquals(data, msg.getData());
     }
