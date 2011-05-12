@@ -1,0 +1,24 @@
+package protobuf_unittest;
+
+// Protos optimized for SPEED use a strict superset of the generated code
+// of equivalent ones optimized for CODE_SIZE, so we should optimize all our
+// tests for speed unless explicitly testing code size optimization.
+option optimize_for = SPEED;
+
+option java_outer_classname = "UnittestMultiNestedProto";
+
+message Outer {
+    repeated Inner one = 1;
+    repeated Inner two = 2;
+}
+
+message Inner {
+    repeated Holder data1 = 1;
+    repeated Holder data2 = 2;
+}
+
+message Holder {
+  required string id = 1;
+  optional string rev = 2;
+  optional string data = 3;
+}
