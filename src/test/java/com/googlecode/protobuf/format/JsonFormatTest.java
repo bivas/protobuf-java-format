@@ -1,6 +1,12 @@
-package com.google.protobuf;
+package com.googlecode.protobuf.format;
 
-import com.google.protobuf.test.UnittestImport.ImportMessage;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.ExtensionRegistry;
+import com.google.protobuf.TextFormat;
+import com.googlecode.protobuf.format.JsonFormat;
+import com.googlecode.protobuf.format.XmlFormat;
+import com.googlecode.protobuf.format.test.UnittestImport.ImportMessage;
+
 import org.junit.Test;
 import protobuf_unittest.UnittestProto;
 import protobuf_unittest.UnittestProto.OneString;

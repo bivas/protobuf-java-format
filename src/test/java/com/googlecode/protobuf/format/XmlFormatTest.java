@@ -26,11 +26,16 @@
     (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
     OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package com.google.protobuf;
+package com.googlecode.protobuf.format;
 
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
+
+import com.google.protobuf.ByteString;
+import com.google.protobuf.TextFormat;
+import com.google.protobuf.UnknownFieldSet;
+import com.googlecode.protobuf.format.XmlFormat;
 
 import protobuf_unittest.UnittestProto;
 import protobuf_unittest.UnittestProto.TestEmptyMessage;

@@ -1,4 +1,4 @@
-package com.google.protobuf;
+package com.googlecode.protobuf.format;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -6,6 +6,12 @@ import java.nio.CharBuffer;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import com.google.protobuf.ByteString;
+import com.google.protobuf.Descriptors;
+import com.google.protobuf.ExtensionRegistry;
+import com.google.protobuf.Message;
+import com.google.protobuf.UnknownFieldSet;
 
 /**
  * Provide ascii text parsing and formatting support for proto2 instances. The implementation
@@ -111,9 +117,9 @@ public class JavaPropsFormat {
                                 throws IOException {
     if (field.isRepeated()) {
       // Repeated field.  Print each element.
-      List list = (List) value;
+      List<?> list = (List<?>) value;
       for (int i = 0; i < list.size(); i++) {
-        printSingleField(field, list.get(i), new Integer(i), generator);
+        printSingleField(field, list.get(i), i, generator);
       }
     } else {
       printSingleField(field, value, null, generator);
@@ -234,7 +240,6 @@ public class JavaPropsFormat {
                                          throws IOException {
     for (final Map.Entry<Integer, UnknownFieldSet.Field> entry :
          unknownFields.asMap().entrySet()) {
-      final String prefix = entry.getKey().toString() + "=";
       final UnknownFieldSet.Field field = entry.getValue();
 
       for (final long value : field.getVarintList()) {

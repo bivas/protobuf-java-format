@@ -1,6 +1,10 @@
-package com.google.protobuf;
+package com.googlecode.protobuf.format;
 
 import org.junit.Test;
+
+import com.google.protobuf.TextFormat;
+import com.googlecode.protobuf.format.JavaPropsFormat;
+
 import protobuf_unittest.UnittestMultiNestedProto;
 
 import static org.junit.Assert.assertEquals;

@@ -27,7 +27,7 @@
 // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-package com.google.protobuf;
+package com.googlecode.protobuf.format;
 
 
 import protobuf_unittest.UnittestProto;
@@ -129,8 +129,13 @@ import protobuf_unittest.UnittestProto.TestPackedExtensions;
 import protobuf_unittest.UnittestProto.TestPackedTypes;
 import protobuf_unittest.UnittestProto.ForeignMessage;
 import protobuf_unittest.UnittestProto.ForeignEnum;
-import com.google.protobuf.test.UnittestImport.ImportMessage;
-import com.google.protobuf.test.UnittestImport.ImportEnum;
+
+import com.google.protobuf.ByteString;
+import com.google.protobuf.Descriptors;
+import com.google.protobuf.ExtensionRegistry;
+import com.google.protobuf.Message;
+import com.googlecode.protobuf.format.test.UnittestImport.ImportEnum;
+import com.googlecode.protobuf.format.test.UnittestImport.ImportMessage;
 
 import junit.framework.Assert;
 

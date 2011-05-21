@@ -1,4 +1,4 @@
-package com.google.protobuf;
+package com.googlecode.protobuf.format;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -20,14 +20,18 @@ import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.smile.Tool;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import protobuf_unittest.UnittestProto;
 import protobuf_unittest.UnittestProto.OneString;
 import protobuf_unittest.UnittestProto.TestAllTypes;
 
-import com.google.protobuf.test.UnittestImport.ImportMessage;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.ExtensionRegistry;
+import com.google.protobuf.Message;
+import com.google.protobuf.TextFormat;
+import com.google.protobuf.UnknownFieldSet;
+import com.googlecode.protobuf.format.test.UnittestImport.ImportMessage;
 
 /**
  * Unit test for {@link XmlFormat}

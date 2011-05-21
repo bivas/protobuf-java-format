@@ -1,4 +1,7 @@
-package com.google.protobuf;
+package com.googlecode.protobuf.format;
+
+import com.googlecode.protobuf.format.CouchDBFormat;
+import com.googlecode.protobuf.format.JsonFormat;
 
 import junit.framework.TestCase;
 import protobuf_unittest.UnittestCouchDbProto;

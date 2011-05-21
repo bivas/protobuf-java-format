@@ -1,7 +1,11 @@
-package com.google.protobuf;
+package com.googlecode.protobuf.format;
 
 
 import java.io.IOException;
+
+import com.google.protobuf.ExtensionRegistry;
+import com.google.protobuf.Message;
+import com.google.protobuf.UnknownFieldSet;
 
 /**
  * Created by IntelliJ IDEA.

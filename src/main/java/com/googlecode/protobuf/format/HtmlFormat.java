@@ -1,4 +1,4 @@
-package com.google.protobuf;
+package com.googlecode.protobuf.format;
 /* 
     Copyright (c) 2009, Orbitz World Wide
     All rights reserved.
@@ -35,6 +35,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import com.google.protobuf.ByteString;
+import com.google.protobuf.Message;
+import com.google.protobuf.UnknownFieldSet;
 import com.google.protobuf.Descriptors.EnumValueDescriptor;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 
@@ -427,7 +430,7 @@ public final class HtmlFormat {
 
     /**
      * Un-escape a byte sequence as escaped using
-     * {@link #escapeBytes(com.google.protobuf.ByteString)}. Two-digit hex escapes (starting with
+     * {@link #escapeBytes(com.googlecode.protobuf.format.ByteString)}. Two-digit hex escapes (starting with
      * "\x") are also recognized.
      */
     static ByteString unescapeBytes(CharSequence input) throws InvalidEscapeSequence {
@@ -530,7 +533,7 @@ public final class HtmlFormat {
     }
 
     /**
-     * Like {@link #escapeBytes(com.google.protobuf.ByteString)}, but escapes a text string.
+     * Like {@link #escapeBytes(com.googlecode.protobuf.format.ByteString)}, but escapes a text string.
      * Non-ASCII characters are first encoded as UTF-8, then each byte is escaped individually as a
      * 3-digit octal escape. Yes, it's weird.
      */
