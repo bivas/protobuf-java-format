@@ -1,5 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>org.sonatype.oss</groupId>
@@ -9,14 +8,14 @@
 	<groupId>com.googlecode.protobuf-java-format</groupId>
 	<artifactId>protobuf-java-format</artifactId>
 	<name>protobuf-java-format</name>
-	<version>1.2-SNAPSHOT</version>
+	<version>1.2</version>
 	<description>Provide serialization and de-serialization of different formats based on Google’s protobuf Message. Enables overriding the default (byte array) output to text based formats such as XML, JSON and HTML.</description>
 	<url>http://code.google.com/p/protobuf-java-format/</url>
 	<packaging>jar</packaging>
 	<scm>
-		<connection>scm:svn:http://protobuf-java-format.googlecode.com/svn/trunk/</connection>
-		<developerConnection>scm:svn:http://protobuf-java-format.googlecode.com/svn/trunk/</developerConnection>
-		<url>http://protobuf-java-format.googlecode.com/svn/trunk/</url>
+		<connection>scm:svn:http://protobuf-java-format.googlecode.com/svn/tags/protobuf-java-format-1.2</connection>
+		<developerConnection>scm:svn:http://protobuf-java-format.googlecode.com/svn/tags/protobuf-java-format-1.2</developerConnection>
+		<url>http://protobuf-java-format.googlecode.com/svn/tags/protobuf-java-format-1.2</url>
 	</scm>
 	<licenses>
 		<license>
@@ -118,14 +117,10 @@
 								<exec executable="${protoc}" failonerror="true">
 									<arg value="--java_out=${project.basedir}/src/test/java" />
 									<arg value="--proto_path=${project.basedir}/src/test/resources" />
-									<arg
-										value="${project.basedir}/src/test/resources/proto/unittest.proto" />
-									<arg
-										value="${project.basedir}/src/test/resources/proto/unittest_import.proto" />
-									<arg
-										value="${project.basedir}/src/test/resources/proto/unittest_couchdb.proto" />
-									<arg
-										value="${project.basedir}/src/test/resources/proto/unittest_multi_nested.proto" />
+									<arg value="${project.basedir}/src/test/resources/proto/unittest.proto" />
+									<arg value="${project.basedir}/src/test/resources/proto/unittest_import.proto" />
+									<arg value="${project.basedir}/src/test/resources/proto/unittest_couchdb.proto" />
+									<arg value="${project.basedir}/src/test/resources/proto/unittest_multi_nested.proto" />
 								</exec>
 							</tasks>
 							<testSourceRoot>target/generated-test-sources</testSourceRoot>
