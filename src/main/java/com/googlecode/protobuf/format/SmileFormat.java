@@ -162,6 +162,7 @@ public class SmileFormat {
     	SmileGenerator generator = smileFactory.createJsonGenerator(output);
     	generator.enable(SmileGenerator.Feature.WRITE_HEADER);
     	generator.enable(SmileGenerator.Feature.WRITE_END_MARKER);
+    	generator.disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
     	return generator;
     }
 

@@ -14,6 +14,7 @@ import java.io.Writer;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.MalformedInputException;
+import java.util.zip.GZIPOutputStream;
 
 import org.codehaus.jackson.JsonEncoding;
 import org.codehaus.jackson.JsonFactory;
@@ -34,7 +35,7 @@ import com.google.protobuf.UnknownFieldSet;
 import com.googlecode.protobuf.format.test.UnittestImport.ImportMessage;
 
 /**
- * Unit test for {@link XmlFormat}
+ * Unit test for {@link SmileFormat}
  *
  * @author jeffrey.damick@neustar.biz Jeffrey Damick
  *         Based on {@link TextFormat} originally written by:
@@ -193,6 +194,14 @@ public class SmileFormatTest {
         } catch (Exception e) {
             // good
         }
+    }
+    
+    @Test
+    public void testReusingOutputStream() throws Exception {
+    	GZIPOutputStream output = new GZIPOutputStream(new ByteArrayOutputStream());
+    	OneString msg = OneString.newBuilder().setData("!@##&*)&*(&*&*&*\"}{))_+__+$$(((((((((((((((()!?:\">").build();
+    	SmileFormat.print(msg, output);
+    	SmileFormat.print(msg, output);
     }
 
 
