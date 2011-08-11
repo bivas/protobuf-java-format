@@ -1,8 +1,12 @@
 package com.googlecode.protobuf.format;
 
+import java.io.ByteArrayInputStream;
+
 import org.junit.Test;
 
 import com.google.protobuf.TextFormat;
+import com.googlecode.protobuf.format.FormatFactory.Formatter;
+import com.googlecode.protobuf.format.util.TextUtils;
 import com.googlecode.protobuf.format.JavaPropsFormat;
 
 import protobuf_unittest.UnittestMultiNestedProto;
@@ -27,12 +31,13 @@ public class JavaPropsFormatTest {
 
         UnittestMultiNestedProto.Outer msg = createNestedMessage();
 
-        String javaText = JavaPropsFormat.printToString(msg);
+        ProtobufFormatter propsFormatter = (new FormatFactory()).createFormatter(Formatter.JAVA_PROPS);
+        String javaText = propsFormatter.printToString(msg);
 
         //System.out.println(javaText);
 
         UnittestMultiNestedProto.Outer.Builder builder = UnittestMultiNestedProto.Outer.newBuilder();
-        JavaPropsFormat.merge(javaText, builder);
+        propsFormatter.merge(TextUtils.toInputStream(javaText), builder);
         assertEquals(msg, builder.build());
     }
 

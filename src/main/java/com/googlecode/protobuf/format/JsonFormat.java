@@ -50,6 +50,7 @@ import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.EnumDescriptor;
 import com.google.protobuf.Descriptors.EnumValueDescriptor;
 import com.google.protobuf.Descriptors.FieldDescriptor;
+import static com.googlecode.protobuf.format.util.TextUtils.*;
 
 /**
  * Provide ascii text parsing and formatting support for proto2 instances. The implementation
@@ -64,14 +65,14 @@ import com.google.protobuf.Descriptors.FieldDescriptor;
  * @author wenboz@google.com Wenbo Zhu
  * @author kenton@google.com Kenton Varda
  */
-public class JsonFormat {
+public class JsonFormat extends AbstractCharBasedFormatter {
 
     /**
      * Outputs a textual representation of the Protocol Message supplied into the parameter output.
      * (This representation is the new version of the classic "ProtocolPrinter" output from the
      * original Protocol Buffer system)
      */
-    public static void print(Message message, Appendable output) throws IOException {
+	public void print(final Message message, Appendable output) throws IOException {
         JsonGenerator generator = new JsonGenerator(output);
         generator.print("{");
         print(message, generator);
@@ -81,42 +82,15 @@ public class JsonFormat {
     /**
      * Outputs a textual representation of {@code fields} to {@code output}.
      */
-    public static void print(UnknownFieldSet fields, Appendable output) throws IOException {
+   	public void print(final UnknownFieldSet fields, Appendable output) throws IOException {
         JsonGenerator generator = new JsonGenerator(output);
         generator.print("{");
         printUnknownFields(fields, generator);
         generator.print("}");
     }
 
-    /**
-     * Like {@code print()}, but writes directly to a {@code String} and returns it.
-     */
-    public static String printToString(Message message) {
-        try {
-            StringBuilder text = new StringBuilder();
-            print(message, text);
-            return text.toString();
-        } catch (IOException e) {
-            throw new RuntimeException("Writing to a StringBuilder threw an IOException (should never happen).",
-                                       e);
-        }
-    }
-
-    /**
-     * Like {@code print()}, but writes directly to a {@code String} and returns it.
-     */
-    public static String printToString(UnknownFieldSet fields) {
-        try {
-            StringBuilder text = new StringBuilder();
-            print(fields, text);
-            return text.toString();
-        } catch (IOException e) {
-            throw new RuntimeException("Writing to a StringBuilder threw an IOException (should never happen).",
-                                       e);
-        }
-    }
-
-    protected static void print(Message message, JsonGenerator generator) throws IOException {
+   
+    protected void print(Message message, JsonGenerator generator) throws IOException {
 
         for (Iterator<Map.Entry<FieldDescriptor, Object>> iter = message.getAllFields().entrySet().iterator(); iter.hasNext();) {
             Map.Entry<FieldDescriptor, Object> field = iter.next();
@@ -130,12 +104,12 @@ public class JsonFormat {
         printUnknownFields(message.getUnknownFields(), generator);
     }
 
-    public static void printField(FieldDescriptor field, Object value, JsonGenerator generator) throws IOException {
+    public void printField(FieldDescriptor field, Object value, JsonGenerator generator) throws IOException {
 
         printSingleField(field, value, generator);
     }
 
-    private static void printSingleField(FieldDescriptor field,
+    private void printSingleField(FieldDescriptor field,
                                          Object value,
                                          JsonGenerator generator) throws IOException {
         if (field.isExtension()) {
@@ -189,7 +163,7 @@ public class JsonFormat {
         }
     }
 
-    private static void printFieldValue(FieldDescriptor field, Object value, JsonGenerator generator) throws IOException {
+    private void printFieldValue(FieldDescriptor field, Object value, JsonGenerator generator) throws IOException {
         switch (field.getType()) {
             case INT32:
             case INT64:
@@ -243,7 +217,7 @@ public class JsonFormat {
         }
     }
 
-    protected static void printUnknownFields(UnknownFieldSet unknownFields, JsonGenerator generator) throws IOException {
+    protected void printUnknownFields(UnknownFieldSet unknownFields, JsonGenerator generator) throws IOException {
         boolean firstField = true;
         for (Map.Entry<Integer, UnknownFieldSet.Field> entry : unknownFields.asMap().entrySet()) {
             UnknownFieldSet.Field field = entry.getValue();
@@ -290,29 +264,8 @@ public class JsonFormat {
         }
     }
 
-    /**
-     * Convert an unsigned 32-bit integer to a string.
-     */
-    private static String unsignedToString(int value) {
-        if (value >= 0) {
-            return Integer.toString(value);
-        } else {
-            return Long.toString((value) & 0x00000000FFFFFFFFL);
-        }
-    }
 
-    /**
-     * Convert an unsigned 64-bit integer to a string.
-     */
-    private static String unsignedToString(long value) {
-        if (value >= 0) {
-            return Long.toString(value);
-        } else {
-            // Pull off the most-significant bit so that BigInteger doesn't think
-            // the number is negative, then set it again using setBit().
-            return BigInteger.valueOf(value & 0x7FFFFFFFFFFFFFFFL).setBit(63).toString();
-        }
-    }
+    
 
     /**
      * An inner class for writing text to the output stream.
@@ -804,61 +757,12 @@ public class JsonFormat {
         }
     }
 
-    /**
-     * Parse a text-format message from {@code input} and merge the contents into {@code builder}.
-     */
-    public static void merge(Readable input, Message.Builder builder) throws IOException {
-        merge(input, ExtensionRegistry.getEmptyRegistry(), builder);
-    }
-
-    /**
-     * Parse a text-format message from {@code input} and merge the contents into {@code builder}.
-     */
-    public static void merge(CharSequence input, Message.Builder builder) throws ParseException {
-        merge(input, ExtensionRegistry.getEmptyRegistry(), builder);
-    }
 
     /**
      * Parse a text-format message from {@code input} and merge the contents into {@code builder}.
      * Extensions will be recognized if they are registered in {@code extensionRegistry}.
      */
-    public static void merge(Readable input,
-                             ExtensionRegistry extensionRegistry,
-                             Message.Builder builder) throws IOException {
-        // Read the entire input to a String then parse that.
-
-        // If StreamTokenizer were not quite so crippled, or if there were a kind
-        // of Reader that could read in chunks that match some particular regex,
-        // or if we wanted to write a custom Reader to tokenize our stream, then
-        // we would not have to read to one big String. Alas, none of these is
-        // the case. Oh well.
-
-        merge(toStringBuilder(input), extensionRegistry, builder);
-    }
-
-    private static final int BUFFER_SIZE = 4096;
-
-    // TODO(chrisn): See if working around java.io.Reader#read(CharBuffer)
-    // overhead is worthwhile
-    protected static StringBuilder toStringBuilder(Readable input) throws IOException {
-        StringBuilder text = new StringBuilder();
-        CharBuffer buffer = CharBuffer.allocate(BUFFER_SIZE);
-        while (true) {
-            int n = input.read(buffer);
-            if (n == -1) {
-                break;
-            }
-            buffer.flip();
-            text.append(buffer, 0, n);
-        }
-        return text;
-    }
-
-    /**
-     * Parse a text-format message from {@code input} and merge the contents into {@code builder}.
-     * Extensions will be recognized if they are registered in {@code extensionRegistry}.
-     */
-    public static void merge(CharSequence input,
+    public void merge(CharSequence input,
                              ExtensionRegistry extensionRegistry,
                              Message.Builder builder) throws ParseException {
         Tokenizer tokenizer = new Tokenizer(input);
@@ -883,7 +787,7 @@ public class JsonFormat {
      * Parse a single field from {@code tokenizer} and merge it into {@code builder}. If a ',' is
      * detected after the field ends, the next field will be parsed automatically
      */
-    protected static void mergeField(Tokenizer tokenizer,
+    protected void mergeField(Tokenizer tokenizer,
                                    ExtensionRegistry extensionRegistry,
                                    Message.Builder builder) throws ParseException {
         FieldDescriptor field;
@@ -959,7 +863,7 @@ public class JsonFormat {
         }
     }
 
-    private static void handleMissingField(Tokenizer tokenizer,
+    private void handleMissingField(Tokenizer tokenizer,
                                            ExtensionRegistry extensionRegistry,
                                            Message.Builder builder) throws ParseException {
         tokenizer.tryConsume(":");
@@ -992,7 +896,7 @@ public class JsonFormat {
         }
     }
 
-    private static void handleValue(Tokenizer tokenizer,
+    private void handleValue(Tokenizer tokenizer,
                                     ExtensionRegistry extensionRegistry,
                                     Message.Builder builder,
                                     FieldDescriptor field,
@@ -1014,7 +918,7 @@ public class JsonFormat {
         }
     }
 
-    private static Object handlePrimitive(Tokenizer tokenizer, FieldDescriptor field) throws ParseException {
+    private Object handlePrimitive(Tokenizer tokenizer, FieldDescriptor field) throws ParseException {
         Object value = null;
         if ("null".equals(tokenizer.currentToken())) {
             tokenizer.consume("null");
@@ -1096,7 +1000,7 @@ public class JsonFormat {
         return value;
     }
 
-    private static Object handleObject(Tokenizer tokenizer,
+    private Object handleObject(Tokenizer tokenizer,
                                        ExtensionRegistry extensionRegistry,
                                        Message.Builder builder,
                                        FieldDescriptor field,
@@ -1453,34 +1357,6 @@ public class JsonFormat {
       return builder.toString();
     }
 
-    /**
-     * Is this an octal digit?
-     */
-    private static boolean isOctal(char c) {
-        return ('0' <= c) && (c <= '7');
-    }
-
-    /**
-     * Is this a hex digit?
-     */
-    private static boolean isHex(char c) {
-        return (('0' <= c) && (c <= '9')) || (('a' <= c) && (c <= 'f'))
-               || (('A' <= c) && (c <= 'F'));
-    }
-
-    /**
-     * Interpret a character as a digit (in any base up to 36) and return the numeric value. This is
-     * like {@code Character.digit()} but we don't accept non-ASCII digits.
-     */
-    private static int digitValue(char c) {
-        if (('0' <= c) && (c <= '9')) {
-            return c - '0';
-        } else if (('a' <= c) && (c <= 'z')) {
-            return c - 'a' + 10;
-        } else {
-            return c - 'A' + 10;
-        }
-    }
 
     /**
      * Parse a 32-bit signed integer from the text. Unlike the Java standard {@code

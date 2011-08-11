@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigInteger;
+import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -56,6 +57,7 @@ import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.EnumDescriptor;
 import com.google.protobuf.Descriptors.EnumValueDescriptor;
 import com.google.protobuf.Descriptors.FieldDescriptor;
+import static com.googlecode.protobuf.format.util.TextUtils.*;
 
 /**
  * Provide ascii text parsing and formatting support for proto2 instances. The implementation
@@ -71,7 +73,7 @@ import com.google.protobuf.Descriptors.FieldDescriptor;
  * @author wenboz@google.com Wenbo Zhu
  * @author kenton@google.com Kenton Varda
  */
-public class SmileFormat {
+public class SmileFormat extends ProtobufFormatter {
     private static SmileFactory smileFactory = new SmileFactory();
 	
 		
@@ -80,7 +82,7 @@ public class SmileFormat {
      * (This representation is the new version of the classic "ProtocolPrinter" output from the
      * original Protocol Buffer system)
      */
-    public static void print(Message message, OutputStream output) throws IOException {
+    public void print(final Message message, OutputStream output, Charset cs) throws IOException {
         JsonGenerator generator = createGenerator(output);
     	print(message, generator);
     	generator.close();
@@ -91,7 +93,7 @@ public class SmileFormat {
      * (This representation is the new version of the classic "ProtocolPrinter" output from the
      * original Protocol Buffer system)
      */
-    public static void print(Message message, JsonGenerator generator) throws IOException {
+    public void print(Message message, JsonGenerator generator) throws IOException {
     	generator.writeStartObject();
     	printMessage(message, generator);
         generator.writeEndObject();
@@ -101,7 +103,7 @@ public class SmileFormat {
     /**
      * Outputs a Smile representation of {@code fields} to {@code output}.
      */
-    public static void print(UnknownFieldSet fields, OutputStream output) throws IOException {
+    public void print(final UnknownFieldSet fields, OutputStream output, Charset cs) throws IOException {
     	JsonGenerator generator = createGenerator(output);
     	generator.writeStartObject();
     	printUnknownFields(fields, generator);
@@ -109,24 +111,14 @@ public class SmileFormat {
         generator.close();
     }
     
-    
-    
-    /**
-     * Parse a text-format message from {@code input} and merge the contents into {@code builder}.
-     */
-    public static void merge(InputStream input, Message.Builder builder) throws IOException {
-        merge(input, ExtensionRegistry.getEmptyRegistry(), builder);
-    }
-
         
     /**
      * Parse a text-format message from {@code input} and merge the contents into {@code builder}.
      * Extensions will be recognized if they are registered in {@code extensionRegistry}.
      * @throws IOException 
      */
-    public static void merge(InputStream input,
-                             ExtensionRegistry extensionRegistry,
-                             Message.Builder builder) throws IOException {
+    public void merge(InputStream input, Charset cs,
+    		ExtensionRegistry extensionRegistry, Message.Builder builder) throws IOException {
     	
     	SmileParser parser = smileFactory.createJsonParser(input); 
     	merge(parser, extensionRegistry, builder);
@@ -137,7 +129,7 @@ public class SmileFormat {
      * Extensions will be recognized if they are registered in {@code extensionRegistry}.
      * @throws IOException 
      */
-    public static void merge(JsonParser parser,                 
+    public void merge(JsonParser parser,                 
     						 ExtensionRegistry extensionRegistry,
                              Message.Builder builder) throws IOException {
     	
@@ -167,7 +159,7 @@ public class SmileFormat {
     }
 
     
-    protected static void printMessage(Message message, JsonGenerator generator) throws IOException {
+    protected void printMessage(Message message, JsonGenerator generator) throws IOException {
 
         for (Iterator<Map.Entry<FieldDescriptor, Object>> iter = message.getAllFields().entrySet().iterator(); iter.hasNext();) {
             Map.Entry<FieldDescriptor, Object> field = iter.next();
@@ -176,12 +168,12 @@ public class SmileFormat {
         printUnknownFields(message.getUnknownFields(), generator);
     }
 
-    public static void printField(FieldDescriptor field, Object value, JsonGenerator generator) throws IOException {
+    public void printField(FieldDescriptor field, Object value, JsonGenerator generator) throws IOException {
 
         printSingleField(field, value, generator);
     }
 
-    private static void printSingleField(FieldDescriptor field,
+    private void printSingleField(FieldDescriptor field,
                                          Object value,
                                          JsonGenerator generator) throws IOException {
         if (field.isExtension()) {
@@ -217,7 +209,7 @@ public class SmileFormat {
         }
     }
 
-    private static void printFieldValue(FieldDescriptor field, Object value, JsonGenerator generator) throws IOException {
+    private void printFieldValue(FieldDescriptor field, Object value, JsonGenerator generator) throws IOException {
     	// TODO: look at using field.getType().getJavaType(), to simplify this..
     	switch (field.getType()) {
             case INT32:
@@ -279,7 +271,7 @@ public class SmileFormat {
         }
     }
 
-    protected static void printUnknownFields(UnknownFieldSet unknownFields, JsonGenerator generator) throws IOException {
+    protected void printUnknownFields(UnknownFieldSet unknownFields, JsonGenerator generator) throws IOException {
         for (Map.Entry<Integer, UnknownFieldSet.Field> entry : unknownFields.asMap().entrySet()) {
             UnknownFieldSet.Field field = entry.getValue();
             
@@ -321,7 +313,7 @@ public class SmileFormat {
      * @throws IOException 
      * @throws JsonParseException 
      */
-    protected static void mergeField(JsonParser parser,
+    protected void mergeField(JsonParser parser,
                                    ExtensionRegistry extensionRegistry,
                                    Message.Builder builder) throws JsonParseException, IOException {
         FieldDescriptor field = null;
@@ -402,7 +394,7 @@ public class SmileFormat {
         }
     }
 
-    private static void handleMissingField(String fieldName, JsonParser parser,
+    private void handleMissingField(String fieldName, JsonParser parser,
                                            ExtensionRegistry extensionRegistry,
                                            UnknownFieldSet.Builder builder) throws IOException {
     	
@@ -427,7 +419,7 @@ public class SmileFormat {
         }
     }
 
-    private static void handleValue(JsonParser parser,
+    private void handleValue(JsonParser parser,
                                     ExtensionRegistry extensionRegistry,
                                     Message.Builder builder,
                                     FieldDescriptor field,
@@ -449,7 +441,7 @@ public class SmileFormat {
         }
     }
 
-    private static Object handlePrimitive(JsonParser parser, FieldDescriptor field) throws IOException {
+    private Object handlePrimitive(JsonParser parser, FieldDescriptor field) throws IOException {
         Object value = null;
         
         JsonToken token = parser.getCurrentToken();
@@ -541,7 +533,7 @@ public class SmileFormat {
     }
     
 
-    private static Object handleObject(JsonParser parser,
+    private Object handleObject(JsonParser parser,
                                        ExtensionRegistry extensionRegistry,
                                        Message.Builder builder,
                                        FieldDescriptor field,
@@ -578,31 +570,4 @@ public class SmileFormat {
         return subBuilder.build();
     }
 
-    // =================================================================
-    // Utility functions
-    //
-    // Some of these methods are package-private because Descriptors.java uses
-    // them.
-    
-    /**
-     * Convert an unsigned 32-bit integer to a string.
-     */
-    private static Integer unsignedInt(int value) {
-        if (value < 0) {
-            return (int) ((value) & 0x00000000FFFFFFFFL);
-        }
-        return value;
-    }
-
-    /**
-     * Convert an unsigned 64-bit integer to a string.
-     */
-    private static Long unsignedLong(long value) {
-        if (value < 0) {
-            // Pull off the most-significant bit so that BigInteger doesn't think
-            // the number is negative, then set it again using setBit().
-            return BigInteger.valueOf(value & 0x7FFFFFFFFFFFFFFFL).setBit(63).longValue();
-        }
-        return value;
-    }
 }

@@ -12,6 +12,7 @@ import com.google.protobuf.Descriptors;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.Message;
 import com.google.protobuf.UnknownFieldSet;
+import static com.googlecode.protobuf.format.util.TextUtils.*;
 
 /**
  * Provide ascii text parsing and formatting support for proto2 instances. The implementation
@@ -25,62 +26,28 @@ import com.google.protobuf.UnknownFieldSet;
  * @author wenboz@google.com Wenbo Zhu
  * @author kenton@google.com Kenton Varda
  */
-public class JavaPropsFormat {
-  private JavaPropsFormat() {
-  }
+public class JavaPropsFormat extends AbstractCharBasedFormatter {
 
-  /**
-   * Outputs a textual representation of the Protocol Message supplied into
-   * the parameter output. (This representation is the new version of the
-   * classic "ProtocolPrinter" output from the original Protocol Buffer system)
-   */
-  public static void print(final Message message, final Appendable output)
-                           throws IOException {
-    final JavaPropsGenerator generator = new JavaPropsGenerator(output);
-    print(message, generator);
-  }
+	/**
+	 * Outputs a textual representation of the Protocol Message supplied into
+	 * the parameter output. (This representation is the new version of the
+	 * classic "ProtocolPrinter" output from the original Protocol Buffer system)
+	 */
+	public void print(final Message message, Appendable output) throws IOException {
+		final JavaPropsGenerator generator = new JavaPropsGenerator(output);
+	    print(message, generator);	
+	}
+	
 
   /** Outputs a textual representation of {@code fields} to {@code output}. */
-  public static void print(final UnknownFieldSet fields,
-                           final Appendable output)
-                           throws IOException {
-    final JavaPropsGenerator generator = new JavaPropsGenerator(output);
-    printUnknownFields(fields, generator);
-  }
+	public void print(final UnknownFieldSet fields, Appendable output) throws IOException {
+		final JavaPropsGenerator generator = new JavaPropsGenerator(output);
+	    printUnknownFields(fields, generator);
+	}
+  
 
-  /**
-   * Like {@code print()}, but writes directly to a {@code String} and
-   * returns it.
-   */
-  public static String printToString(final Message message) {
-    try {
-      final StringBuilder text = new StringBuilder();
-      print(message, text);
-      return text.toString();
-    } catch (IOException e) {
-      throw new RuntimeException(
-        "Writing to a StringBuilder threw an IOException (should never " +
-        "happen).", e);
-    }
-  }
-
-  /**
-   * Like {@code print()}, but writes directly to a {@code String} and
-   * returns it.
-   */
-  public static String printToString(final UnknownFieldSet fields) {
-    try {
-      final StringBuilder text = new StringBuilder();
-      print(fields, text);
-      return text.toString();
-    } catch (IOException e) {
-      throw new RuntimeException(
-        "Writing to a StringBuilder threw an IOException (should never " +
-        "happen).", e);
-    }
-  }
-
-  private static void print(final Message message,
+  
+  private void print(final Message message,
                             final JavaPropsGenerator generator)
       throws IOException {
     for (final Map.Entry<Descriptors.FieldDescriptor, Object> field :
@@ -90,7 +57,7 @@ public class JavaPropsFormat {
     printUnknownFields(message.getUnknownFields(), generator);
   }
 
-  public static void printField(final Descriptors.FieldDescriptor field,
+  public void printField(final Descriptors.FieldDescriptor field,
                                 final Object value,
                                 final Appendable output)
                                 throws IOException {
@@ -98,7 +65,7 @@ public class JavaPropsFormat {
     printField(field, value, generator);
   }
 
-  public static String printFieldToString(final Descriptors.FieldDescriptor field,
+  public String printFieldToString(final Descriptors.FieldDescriptor field,
                                           final Object value) {
     try {
       final StringBuilder text = new StringBuilder();
@@ -111,7 +78,7 @@ public class JavaPropsFormat {
     }
   }
 
-  private static void printField(final Descriptors.FieldDescriptor field,
+  private void printField(final Descriptors.FieldDescriptor field,
                                 final Object value,
                                 final JavaPropsGenerator generator)
                                 throws IOException {
@@ -126,7 +93,7 @@ public class JavaPropsFormat {
     }
   }
 
-  private static void printSingleField(final Descriptors.FieldDescriptor field,
+  private void printSingleField(final Descriptors.FieldDescriptor field,
                                        final Object value, final Integer collectionIndex,
                                        final JavaPropsGenerator generator)
                                        throws IOException {
@@ -174,7 +141,7 @@ public class JavaPropsFormat {
     }
   }
 
-  private static String createFieldNameCollectionIndex(final String fieldName,
+  private String createFieldNameCollectionIndex(final String fieldName,
                                                        final Integer collectionIndex)
                                                        throws IOException{
     if (collectionIndex != null) {
@@ -184,7 +151,7 @@ public class JavaPropsFormat {
     }
   }
 
-  private static void printFieldValue(final Descriptors.FieldDescriptor field,
+  private void printFieldValue(final Descriptors.FieldDescriptor field,
                                       final Object value,
                                       final JavaPropsGenerator generator)
                                       throws IOException {
@@ -235,7 +202,7 @@ public class JavaPropsFormat {
     }
   }
 
-  private static void printUnknownFields(final UnknownFieldSet unknownFields,
+  private void printUnknownFields(final UnknownFieldSet unknownFields,
                                          final JavaPropsGenerator generator)
                                          throws IOException {
     for (final Map.Entry<Integer, UnknownFieldSet.Field> entry :
@@ -278,26 +245,8 @@ public class JavaPropsFormat {
     }
   }
 
-  /** Convert an unsigned 32-bit integer to a string. */
-  private static String unsignedToString(final int value) {
-    if (value >= 0) {
-      return Integer.toString(value);
-    } else {
-      return Long.toString(((long) value) & 0x00000000FFFFFFFFL);
-    }
-  }
-
-  /** Convert an unsigned 64-bit integer to a string. */
-  private static String unsignedToString(final long value) {
-    if (value >= 0) {
-      return Long.toString(value);
-    } else {
-      // Pull off the most-significant bit so that BigInteger doesn't think
-      // the number is negative, then set it again using setBit().
-      return BigInteger.valueOf(value & 0x7FFFFFFFFFFFFFFFL)
-                       .setBit(63).toString();
-    }
-  }
+  
+  
 
   /**
    * An inner class for writing text to the output stream.
@@ -775,71 +724,14 @@ public class JavaPropsFormat {
     }
   }
 
-  /**
-   * Parse a text-format message from {@code input} and merge the contents
-   * into {@code builder}.
-   */
-  public static void merge(final Readable input,
-                           final Message.Builder builder)
-                           throws IOException {
-    merge(input, ExtensionRegistry.getEmptyRegistry(), builder);
-  }
-
-  /**
-   * Parse a text-format message from {@code input} and merge the contents
-   * into {@code builder}.
-   */
-  public static void merge(final CharSequence input,
-                           final Message.Builder builder)
-                           throws ParseException {
-    merge(input, ExtensionRegistry.getEmptyRegistry(), builder);
-  }
+  
 
   /**
    * Parse a text-format message from {@code input} and merge the contents
    * into {@code builder}.  Extensions will be recognized if they are
    * registered in {@code extensionRegistry}.
    */
-  public static void merge(final Readable input,
-                           final ExtensionRegistry extensionRegistry,
-                           final Message.Builder builder)
-                           throws IOException {
-    // Read the entire input to a String then parse that.
-
-    // If StreamTokenizer were not quite so crippled, or if there were a kind
-    // of Reader that could read in chunks that match some particular regex,
-    // or if we wanted to write a custom Reader to tokenize our stream, then
-    // we would not have to read to one big String.  Alas, none of these is
-    // the case.  Oh well.
-
-    merge(toStringBuilder(input), extensionRegistry, builder);
-  }
-
-  private static final int BUFFER_SIZE = 4096;
-
-  // TODO(chrisn): See if working around java.io.Reader#read(CharBuffer)
-  // overhead is worthwhile
-  private static StringBuilder toStringBuilder(final Readable input)
-      throws IOException {
-    final StringBuilder text = new StringBuilder();
-    final CharBuffer buffer = CharBuffer.allocate(BUFFER_SIZE);
-    while (true) {
-      final int n = input.read(buffer);
-      if (n == -1) {
-        break;
-      }
-      buffer.flip();
-      text.append(buffer, 0, n);
-    }
-    return text;
-  }
-
-  /**
-   * Parse a text-format message from {@code input} and merge the contents
-   * into {@code builder}.  Extensions will be recognized if they are
-   * registered in {@code extensionRegistry}.
-   */
-  public static void merge(final CharSequence input,
+  public void merge(final CharSequence input,
                            final ExtensionRegistry extensionRegistry,
                            final Message.Builder builder)
                            throws ParseException {
@@ -855,7 +747,7 @@ public class JavaPropsFormat {
    * Parse a single field from {@code tokenizer} and merge it into
    * {@code builder}.
    */
-  private static void mergeField(final Tokenizer tokenizer,
+  private void mergeField(final Tokenizer tokenizer,
                                  final ExtensionRegistry extensionRegistry,
                                  final Map<String, Message> subMessages,
                                  final Message.Builder builder)
@@ -1185,32 +1077,7 @@ public class JavaPropsFormat {
     return unescapeBytes(input).toStringUtf8();
   }
 
-  /** Is this an octal digit? */
-  private static boolean isOctal(final char c) {
-    return '0' <= c && c <= '7';
-  }
-
-  /** Is this a hex digit? */
-  private static boolean isHex(final char c) {
-    return ('0' <= c && c <= '9') ||
-           ('a' <= c && c <= 'f') ||
-           ('A' <= c && c <= 'F');
-  }
-
-  /**
-   * Interpret a character as a digit (in any base up to 36) and return the
-   * numeric value.  This is like {@code Character.digit()} but we don't accept
-   * non-ASCII digits.
-   */
-  private static int digitValue(final char c) {
-    if ('0' <= c && c <= '9') {
-      return c - '0';
-    } else if ('a' <= c && c <= 'z') {
-      return c - 'a' + 10;
-    } else {
-      return c - 'A' + 10;
-    }
-  }
+  
 
   /**
    * Parse a 32-bit signed integer from the text.  Unlike the Java standard

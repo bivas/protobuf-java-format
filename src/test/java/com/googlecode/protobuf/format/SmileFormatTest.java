@@ -32,7 +32,9 @@ import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.Message;
 import com.google.protobuf.TextFormat;
 import com.google.protobuf.UnknownFieldSet;
+import com.googlecode.protobuf.format.FormatFactory.Formatter;
 import com.googlecode.protobuf.format.test.UnittestImport.ImportMessage;
+import com.googlecode.protobuf.format.util.TextUtils;
 
 /**
  * Unit test for {@link SmileFormat}
@@ -48,14 +50,16 @@ public class SmileFormatTest {
     private static final String validJson = "{\"data\": \"!@##&*)&*(&*&*&*\\\"}{))_+__+$$(((((((((((((((()!?:\\\">\"}";
     private static final Charset CHARSET_UTF8 = Charset.forName("UTF-8");
     private final Tool smileTool = new Tool();
+    private FormatFactory formatFactory = new FormatFactory();
+    private ProtobufFormatter formatter = formatFactory.createFormatter(Formatter.SMILE);
 
     @Test
     public void testStackOverflow() throws Exception {
     	TestAllTypes bd = TestAllTypes.newBuilder().setDefaultBytes(ByteString.copyFrom(new byte[1024])).build();
         ByteArrayOutputStream output = new ByteArrayOutputStream();
-        SmileFormat.print(bd, output);
+        formatter.print(bd, output);
         TestAllTypes.Builder builder = TestAllTypes.newBuilder();
-        SmileFormat.merge(new ByteArrayInputStream(output.toByteArray()), builder);
+        formatter.merge(new ByteArrayInputStream(output.toByteArray()), builder);
         assertEquals(bd, builder.build());
     }
 
@@ -80,9 +84,9 @@ public class SmileFormatTest {
     	
     	// put it out
         ByteArrayOutputStream output = new ByteArrayOutputStream();
-        SmileFormat.print(byteType, output);
+        formatter.print(byteType, output);
         TestAllTypes.Builder roundTripBuilder = TestAllTypes.newBuilder();
-        SmileFormat.merge(new ByteArrayInputStream(output.toByteArray()), roundTripBuilder);
+        formatter.merge(new ByteArrayInputStream(output.toByteArray()), roundTripBuilder);
         assertArrayEquals(byteType.getOptionalBytes().toByteArray(), roundTripBuilder.getOptionalBytes().toByteArray());
         // make we get back what we put in.
         assertArrayEquals(testBytes, roundTripBuilder.getOptionalBytes().toByteArray());
@@ -92,8 +96,8 @@ public class SmileFormatTest {
     public void testExtensions() throws Exception {
     	UnittestProto.TestAllExtensions.Builder builder = UnittestProto.TestAllExtensions.newBuilder();
     	ByteArrayOutputStream output = new ByteArrayOutputStream();
-    	SmileFormat.print(TestUtil.getAllExtensionsSet(), output);
-    	SmileFormat.merge(new ByteArrayInputStream(output.toByteArray()), TestUtil.getExtensionRegistry(), builder);
+    	formatter.print(TestUtil.getAllExtensionsSet(), output);
+    	formatter.merge(new ByteArrayInputStream(output.toByteArray()), TestUtil.getExtensionRegistry(), builder);
         assertEquals(TestUtil.getAllExtensionsSet(), builder.build());
     }
     
@@ -101,9 +105,9 @@ public class SmileFormatTest {
     public void testUnregisteredExtensions() throws Exception {
     	UnittestProto.TestAllExtensions.Builder builder = UnittestProto.TestAllExtensions.newBuilder();
     	ByteArrayOutputStream output = new ByteArrayOutputStream();
-    	SmileFormat.print(TestUtil.getAllExtensionsSet(), output);
+    	formatter.print(TestUtil.getAllExtensionsSet(), output);
     	try {
-    		SmileFormat.merge(new ByteArrayInputStream(output.toByteArray()), builder);
+    		formatter.merge(new ByteArrayInputStream(output.toByteArray()), builder);
     		fail("Should fail without the extension registered");
     	} catch (RuntimeException rte) {}
     }
@@ -114,11 +118,11 @@ public class SmileFormatTest {
         
         // put it out
         ByteArrayOutputStream output = new ByteArrayOutputStream();
-        SmileFormat.print(allTypes, output);
+        formatter.print(allTypes, output);
         
         // and back in..
         TestAllTypes.Builder oneFieldSmiled = TestAllTypes.newBuilder();
-        SmileFormat.merge(new ByteArrayInputStream(output.toByteArray()), oneFieldSmiled);
+        formatter.merge(new ByteArrayInputStream(output.toByteArray()), oneFieldSmiled);
         	
         // make sure both the reference object and the one we built match (without unknowns)
         // we leave off unknowns, because without also encoding the field number in the json
@@ -128,7 +132,7 @@ public class SmileFormatTest {
         assertEquals(oneFieldWithoutUnknowns.build(), oneFieldSmiled.build());
         				
         TestAllTypes.Builder builder = TestAllTypes.newBuilder();
-        SmileFormat.merge(new ByteArrayInputStream(output.toByteArray()), builder);
+        formatter.merge(new ByteArrayInputStream(output.toByteArray()), builder);
         assertEquals(allTypes, builder.build());
     }
     
@@ -137,10 +141,10 @@ public class SmileFormatTest {
     public void testAllFieldsSet() throws Exception {
     	ByteArrayOutputStream output = new ByteArrayOutputStream();
     	TestAllTypes allTypes = TestUtil.getAllSet();
-    	SmileFormat.print(allTypes, output);
+    	formatter.print(allTypes, output);
     	// verify compatibility with JsonFormat
         TestAllTypes.Builder builder = TestAllTypes.newBuilder();
-    	SmileFormat.merge(new ByteArrayInputStream(output.toByteArray()), builder);
+    	formatter.merge(new ByteArrayInputStream(output.toByteArray()), builder);
     	//System.out.println(JsonFormat.printToString(allTypes));
     	//System.out.println("*************");
     	//System.out.println(JsonFormat.printToString(builder.build()));
@@ -166,14 +170,14 @@ public class SmileFormatTest {
 
     	// verify compatibility with JsonFormat
         TestAllTypes.Builder builder = TestAllTypes.newBuilder();
-    	JsonFormat.merge(new StringReader(output.toString()), builder);
+        formatFactory.createFormatter(Formatter.JSON).merge(TextUtils.toInputStream(output.toString()), builder);
     	assertEquals(allTypes, builder.build());
     	
     	TestAllTypes.Builder builder2 = TestAllTypes.newBuilder();
     	JsonFactory jsonFactory = new JsonFactory();
     	JsonParser parser = jsonFactory.createJsonParser(
     			new ByteArrayInputStream(output.toString().getBytes(CHARSET_UTF8)));
-    	SmileFormat.merge(parser, ExtensionRegistry.getEmptyRegistry(), builder2);
+    	((SmileFormat) formatter).merge(parser, ExtensionRegistry.getEmptyRegistry(), builder2);
     	assertEquals(allTypes, builder2.build());
     }
 
@@ -181,7 +185,7 @@ public class SmileFormatTest {
     public void testInvalidJson() throws Exception {
     	OneString msg = OneString.newBuilder().setData("!@##&*)&*(&*&*&*\"}{))_+__+$$(((((((((((((((()!?:\">").build();
         ByteArrayOutputStream output = new ByteArrayOutputStream();
-        SmileFormat.print(msg, smileTool.smileFactory.createJsonGenerator(output));
+        ((SmileFormat) formatter).print(msg, smileTool.smileFactory.createJsonGenerator(output));
         
         ByteArrayOutputStream validSmile = new ByteArrayOutputStream();
         encode(validJson, validSmile);
@@ -200,15 +204,15 @@ public class SmileFormatTest {
     public void testReusingOutputStream() throws Exception {
     	GZIPOutputStream output = new GZIPOutputStream(new ByteArrayOutputStream());
     	OneString msg = OneString.newBuilder().setData("!@##&*)&*(&*&*&*\"}{))_+__+$$(((((((((((((((()!?:\">").build();
-    	SmileFormat.print(msg, output);
-    	SmileFormat.print(msg, output);
+    	formatter.print(msg, output);
+    	formatter.print(msg, output);
     }
 
 
     private void printAsText(Message msg, Writer writer) throws IOException {
     	JsonGenerator generator = (new JsonFactory()).createJsonGenerator(writer);
     	generator.useDefaultPrettyPrinter();
-    	SmileFormat.print(msg, generator);
+    	((SmileFormat) formatter).print(msg, generator);
     }
     
     // based on: org.codehaus.jackson.smile.Tool
