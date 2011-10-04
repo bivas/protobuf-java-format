@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.nio.CharBuffer;
+import java.nio.charset.Charset;
 
 public class TextUtils {
 
@@ -112,6 +113,10 @@ public class TextUtils {
     }
     
     public static InputStream toInputStream(String input) {
-    	return new ByteArrayInputStream(input.getBytes());
+    	return toInputStream(input, Charset.defaultCharset());
+    }
+    
+    public static InputStream toInputStream(String input, Charset cs) {
+        return new ByteArrayInputStream(input.getBytes(cs));
     }
 }

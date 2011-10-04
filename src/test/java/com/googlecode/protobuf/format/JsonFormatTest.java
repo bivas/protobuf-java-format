@@ -16,6 +16,7 @@ import protobuf_unittest.UnittestProto.TestAllTypes;
 import protobuf_unittest.UnittestProto.TestNestedExtension;
 
 import java.io.ByteArrayInputStream;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 
 import static org.junit.Assert.*;
@@ -139,7 +140,10 @@ public class JsonFormatTest {
         String testString = "{\"data\":\"" + data + "\"}";
 
         OneString.Builder builder = OneString.newBuilder();
-        formatter.merge(TextUtils.toInputStream(testString), builder);
+        formatter.merge(
+                TextUtils.toInputStream(testString, Charset.forName("UTF-8")),
+                Charset.forName("UTF-8"),
+                builder);
         OneString msg = builder.build();
 
         //System.out.println(msg.getData());
