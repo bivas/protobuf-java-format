@@ -1,48 +1,48 @@
 package com.googlecode.protobuf.format;
 
-import com.google.protobuf.ByteString;
-import com.google.protobuf.ExtensionRegistry;
-import com.google.protobuf.TextFormat;
-import com.googlecode.protobuf.format.FormatFactory.Formatter;
-import com.googlecode.protobuf.format.JsonFormat;
-import com.googlecode.protobuf.format.XmlFormat;
-import com.googlecode.protobuf.format.test.UnittestImport.ImportMessage;
-import com.googlecode.protobuf.format.util.TextUtils;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.nio.charset.Charset;
+import java.util.Arrays;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import protobuf_unittest.UnittestProto;
 import protobuf_unittest.UnittestProto.OneString;
 import protobuf_unittest.UnittestProto.TestAllTypes;
 import protobuf_unittest.UnittestProto.TestNestedExtension;
 
-import java.io.ByteArrayInputStream;
-import java.nio.charset.Charset;
-import java.util.Arrays;
-
-import static org.junit.Assert.*;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.ExtensionRegistry;
+import com.google.protobuf.UnknownFieldSet;
+import com.googlecode.protobuf.format.FormatFactory.Formatter;
+import com.googlecode.protobuf.format.test.UnittestImport.ImportMessage;
+import com.googlecode.protobuf.format.util.TextUtils;
 
 /**
- * Unit test for {@link XmlFormat}
+ * Unit test for {@link JsonJacksonFormat}
  *
- * @author eliran.bivas@gmail.com Eliran Bivas
- *         <p/>
- *         Based on {@link TextFormat} originally written by:
- * @author wenboz@google.com (Wenbo Zhu)
+ * @author jeffrey.damick@neustar.biz Jeffrey Damick
  */
-public class JsonFormatTest {
-    private static final String unknownFieldsText = TestUtil.readTextFromFile("json_format_unknown_fields_data.txt");
-    private static final String bogusJson = "{\"default_string\": \"!@##&*)&*(&*&*&*\"}{))_+__+$$(((((((((((((((()!?:\">\"}";
-    private static final String validJson = "{\"default_string\": \"!@##&*)&*(&*&*&*\\\"}{))_+__+$$(((((((((((((((()!?:\\\">\"}";
+public class JsonJacksonFormatTest {
+    // since jackson doesn't append spaces after the colon... 
+    private static final String unknownFieldsText = 
+            TestUtil.readTextFromFile("json_format_unknown_fields_data.txt").replaceAll(": ", ":");
+    
+    private static final String bogusJson = "{\"default_string\":\"!@##&*)&*(&*&*&*\"}{))_+__+$$(((((((((((((((()!?:\">\"}";
+    private static final String validJson = "{\"default_string\":\"!@##&*)&*(&*&*&*\\\"}{))_+__+$$(((((((((((((((()!?:\\\">\"}";
     private FormatFactory formatFactory = new FormatFactory();
-    private ProtobufFormatter formatter = formatFactory.createFormatter(Formatter.JSON);
+    private ProtobufFormatter formatter = formatFactory.createFormatter(Formatter.JSON_JACKSON);
 
     @Before
     public void setup() {
         formatter.setDefaultCharset(Charset.forName("UTF-8"));
     }
     
-    
+    @Test
     public void testStackOverflow() throws Exception {
     	TestAllTypes bd = TestAllTypes.newBuilder().setDefaultBytes(ByteString.copyFrom(new byte[1024])).build();
         String jsonText = formatter.printToString(bd);
@@ -54,13 +54,39 @@ public class JsonFormatTest {
     public void testUnknown() throws Exception {
     	TestAllTypes allTypes = TestAllTypes.newBuilder().setDefaultInt32(123).setOptionalInt64(456l).setOptionalString("foo").setOptionalImportMessage(ImportMessage.newBuilder().setD(123)).build();
         String javaText = formatter.printToString(allTypes);
-        //System.out.println(javaText);
+         // System.out.println(javaText);
         assertEquals("json doesn't match", unknownFieldsText, javaText);
 
         TestAllTypes.Builder builder = TestAllTypes.newBuilder();
         formatter.merge(TextUtils.toInputStream(javaText), builder);
         assertEquals(allTypes, builder.build());
     }
+    
+    @Test
+    public void testMoreUnknown() throws Exception {
+        UnknownFieldSet unknownGroupLevel2 = UnknownFieldSet.newBuilder()
+                .addField(16, UnknownFieldSet.Field.newBuilder().addVarint(566667).build()).build();
+        
+        UnknownFieldSet unknownGroup = UnknownFieldSet.newBuilder()
+                .addField(11, UnknownFieldSet.Field.newBuilder().addVarint(566667).build())
+                .addField(15, UnknownFieldSet.Field.newBuilder().addGroup(unknownGroupLevel2).build())
+                .build();
+                
+        ByteString bs = ByteString.copyFromUtf8("testUnknown");
+        OneString data = OneString.newBuilder().setUnknownFields(
+                UnknownFieldSet.newBuilder()
+                    .addField(5, UnknownFieldSet.Field.newBuilder().addFixed32(999).build())
+                    .addField(6, UnknownFieldSet.Field.newBuilder().addGroup(unknownGroup).build())
+                    .addField(7, UnknownFieldSet.Field.newBuilder().addLengthDelimited(bs).build()).build()
+        ).setData("12345").build();
+        
+        String javaText = formatter.printToString(data);
+//System.out.println(javaText);
+        OneString.Builder builder = OneString.newBuilder();
+        formatter.merge(TextUtils.toInputStream(javaText), builder);
+        assertEquals(data, builder.build());
+    }
+    
 
     @Test
     public void testInvalidJson() throws Exception {
@@ -79,12 +105,14 @@ public class JsonFormatTest {
     }
     
     @Test
-    public void test_stringValueContainsSurrogatePair() throws Exception {
+    public void testStringValueContainsSurrogatePair() throws Exception {
         String testString = new String(Character.toChars(0x1D11E));
+                
         OneString msg = OneString.newBuilder().setData(testString).build();
         String json = formatter.printToString(msg);
         // Assert that the surrogate pair was encoded
-        assertEquals("{\"data\": \"\\ud834\\udd1e\"}", json);
+
+        assertEquals("{\"data\":\"\\uD834\\uDD1E\"}", json);
     
         // Assert that we can read the string back into a msg
         OneString.Builder builder = OneString.newBuilder();
@@ -93,7 +121,7 @@ public class JsonFormatTest {
     }
     
     @Test
-    public void test_stringValueContainsControlCharacters() throws Exception {
+    public void testStringValueContainsControlCharacters() throws Exception {
         char[] ctrlChars = new char[0x001F + 1];
         for(char c = 0; c < 0x001F+1; c++) {
           ctrlChars[c] = c;
@@ -111,7 +139,7 @@ public class JsonFormatTest {
     }
  
     @Test
-    public void test_stringValueContainsCharactersThatShouldBeEscaped() throws Exception {
+    public void testStringValueContainsCharactersThatShouldBeEscaped() throws Exception {
     	// input string is \"'
         String testString = "\\\"'";
         OneString msg = OneString.newBuilder().setData(testString).build();
@@ -119,7 +147,7 @@ public class JsonFormatTest {
         // Assert that reverse-solidus and double quotes where escaped using a reverse-solidus
 
         // Expected string is {"name": "\\\"'"}
-        assertEquals("{\"data\": \"\\\\\\\"\'\"}", json);
+        assertEquals("{\"data\":\"\\\\\\\"\'\"}", json);
 
         // Assert that we can read the string back into a msg
         OneString.Builder builder = OneString.newBuilder();
@@ -128,7 +156,7 @@ public class JsonFormatTest {
     }
     
     @Test
-    public void test_nestedExtension() throws Exception {
+    public void testNestedExtension() throws Exception {
         ExtensionRegistry registry = ExtensionRegistry.newInstance();
         UnittestProto.registerAllExtensions(registry);
         
@@ -141,14 +169,16 @@ public class JsonFormatTest {
         assertEquals("aTest", value);
     }
 
+
+    
     @Test
-    public void test_chineseCharacters() throws Exception {
+    public void testChineseCharacters() throws Exception {
         String data = "検索jan5検索.8@test.relay.symantec.com";
         String testString = "{\"data\":\"" + data + "\"}";
 
         OneString.Builder builder = OneString.newBuilder();
         formatter.merge(
-                TextUtils.toInputStream(testString, Charset.forName("UTF-8")),
+                TextUtils.toInputStream(testString, Charset.forName("UTF-8")), 
                 builder);
         OneString msg = builder.build();
 
@@ -156,4 +186,5 @@ public class JsonFormatTest {
 
         assertEquals(data, msg.getData());
     }
+    
 }

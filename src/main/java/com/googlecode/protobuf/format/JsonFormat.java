@@ -50,6 +50,8 @@ import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.EnumDescriptor;
 import com.google.protobuf.Descriptors.EnumValueDescriptor;
 import com.google.protobuf.Descriptors.FieldDescriptor;
+import com.googlecode.protobuf.format.util.TextUtils;
+
 import static com.googlecode.protobuf.format.util.TextUtils.*;
 
 /**
@@ -779,9 +781,6 @@ public class JsonFormat extends AbstractCharBasedFormatter {
         }
     }
 
-    private static final Pattern DIGITS = Pattern.compile(
-          "[0-9]",
-          Pattern.CASE_INSENSITIVE);
 
     /**
      * Parse a single field from {@code tokenizer} and merge it into {@code builder}. If a ',' is
@@ -819,7 +818,7 @@ public class JsonFormat extends AbstractCharBasedFormatter {
 
         // Last try to lookup by field-index if 'name' is numeric,
         // which indicates a possible unknown field
-        if (field == null && DIGITS.matcher(name).matches()) {
+        if (field == null && TextUtils.isDigits(name)) {
             field = type.findFieldByNumber(Integer.parseInt(name));
             unknown = true;
         }

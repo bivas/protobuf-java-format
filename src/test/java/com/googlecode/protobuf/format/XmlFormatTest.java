@@ -30,6 +30,8 @@ package com.googlecode.protobuf.format;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.IOException;
+
 import org.junit.Test;
 
 import com.google.protobuf.ByteString;
@@ -40,6 +42,7 @@ import com.googlecode.protobuf.format.FormatFactory.Formatter;
 import com.googlecode.protobuf.format.util.TextUtils;
 
 import protobuf_unittest.UnittestProto;
+import protobuf_unittest.UnittestProto.OneString;
 import protobuf_unittest.UnittestProto.TestEmptyMessage;
 
 /**
@@ -88,6 +91,17 @@ public class XmlFormatTest {
         assertEquals("unknown fields message doesn't match", 
         		"<message><unknown-field index=\"5\">1</unknown-field><unknown-field index=\"5\">0x00000002</unknown-field><unknown-field index=\"5\">0x0000000000000003</unknown-field><unknown-field index=\"5\">4</unknown-field><unknown-field index=\"5\"><unknown-field index=\"10\">5</unknown-field></unknown-field><unknown-field index=\"8\">1</unknown-field><unknown-field index=\"8\">2</unknown-field><unknown-field index=\"8\">3</unknown-field><unknown-field index=\"15\">12379813812177893520</unknown-field><unknown-field index=\"15\">0xabcd1234</unknown-field><unknown-field index=\"15\">0xabcdef1234567890</unknown-field></message>",  
         		formatter.printToString(fieldSet));
+    }
+    
+    @Test
+    public void testPathInProperty() throws IOException {
+        final String value = "/some/path/to/something?param=1";
+        OneString msg = OneString.newBuilder().setData(value).build();
+        String xmlText = formatter.printToString(msg);
+        assertEquals("<OneString><data>" + value + "</data></OneString>", xmlText);
+        OneString.Builder builder = OneString.newBuilder();
+// TODO: This is broken in the xml parser.        
+//formatter.merge(TextUtils.toInputStream(xmlText), builder);
     }
 
     @Test

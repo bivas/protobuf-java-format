@@ -18,7 +18,9 @@ public class FormatFactory {
 		JAVA_PROPS (JavaPropsFormat.class),
 		JSON (JsonFormat.class),
 		XML (XmlFormat.class),
-		SMILE (SmileFormat.class);
+		SMILE (SmileFormat.class),
+		JSON_JACKSON (JsonJacksonFormat.class),
+		XML_JAVAX (XmlJavaxFormat.class);
 		
 		private Class<? extends ProtobufFormatter> formatterClass;
 		Formatter(Class<? extends ProtobufFormatter> formatterClass) {
