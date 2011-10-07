@@ -20,7 +20,23 @@ import com.google.protobuf.UnknownFieldSet;
 import com.googlecode.protobuf.format.JavaPropsFormat.ParseException;
 
 public abstract class ProtobufFormatter {
+    private Charset defaultCharset = Charset.defaultCharset();
 
+    /**
+     * Set the default character set to use for input / output data streams
+     * @param cs the character set to use by default, when unspecified
+     */
+    public void setDefaultCharset(Charset cs) {
+        defaultCharset = cs;
+    }
+    
+    /**
+     * Get the default character set to use for input / output streams
+     * @return the character set to use by default, when unspecified
+     */
+    public Charset getDefaultCharset() {
+        return defaultCharset;
+    }
 	
 	/**
 	 * @see print(Message, OutputStream, Charset)
@@ -29,7 +45,7 @@ public abstract class ProtobufFormatter {
 	 * @throws IOException
 	 */
 	public void print(final Message message, OutputStream output) throws IOException {
-		print(message, output, Charset.defaultCharset());
+		print(message, output, defaultCharset);
 	}
 	
 	/**
@@ -52,7 +68,7 @@ public abstract class ProtobufFormatter {
 	 * @throws IOException
 	 */
 	public void print(final UnknownFieldSet fields, OutputStream output) throws IOException {
-		print(fields, output, Charset.defaultCharset());
+		print(fields, output, defaultCharset);
 	}
 
 	/**
@@ -70,7 +86,7 @@ public abstract class ProtobufFormatter {
 	public String printToString(final Message message) {
 		try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
-            print(message, out, Charset.defaultCharset());
+            print(message, out, defaultCharset);
             out.flush();
             return out.toString();
         } catch (IOException e) {
@@ -85,7 +101,7 @@ public abstract class ProtobufFormatter {
 	public String printToString(final UnknownFieldSet fields) {
 		try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
-            print(fields, out, Charset.defaultCharset());
+            print(fields, out, defaultCharset);
             out.flush();
             return out.toString();
         } catch (IOException e) {
@@ -128,13 +144,13 @@ public abstract class ProtobufFormatter {
 	public void merge(final InputStream input, 
 			final Message.Builder builder) throws IOException {
 		
-		merge(input, Charset.defaultCharset(), 
+		merge(input, defaultCharset, 
 				ExtensionRegistry.getEmptyRegistry(), builder);
 	}
 	
 	public void merge(final InputStream input,
 			ExtensionRegistry extensionRegistry, 
 			final Message.Builder builder) throws IOException {
-		merge(input, Charset.defaultCharset(), extensionRegistry, builder);
+		merge(input, defaultCharset, extensionRegistry, builder);
 	}
 }
