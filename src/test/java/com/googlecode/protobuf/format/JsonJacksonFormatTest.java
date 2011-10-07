@@ -84,7 +84,7 @@ public class JsonJacksonFormatTest {
 //System.out.println(javaText);
         OneString.Builder builder = OneString.newBuilder();
         formatter.merge(TextUtils.toInputStream(javaText), builder);
-        assertEquals(data, builder.build());
+        assertEquals(data.getData(), builder.build().getData());
     }
     
 
