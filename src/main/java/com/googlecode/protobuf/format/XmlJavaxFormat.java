@@ -444,7 +444,7 @@ public class XmlJavaxFormat extends ProtobufFormatter {
                     builder.setField(field, result);
                 }
             }
-        } else {
+        } else if (!unknown) {
             assert event.isCharacters();
         }
     }

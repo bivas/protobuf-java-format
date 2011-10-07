@@ -189,7 +189,7 @@ public class XmlJavaxFormatTest {
 //System.out.println(xmlText);
         OneString.Builder builder = OneString.newBuilder();
         formatter.merge(TextUtils.toInputStream(xmlText), builder);
-        assertEquals("12345", builder.build().getData());
+        assertEquals(data.getData(), builder.build().getData());
     }
     
     @Test
@@ -219,6 +219,14 @@ public class XmlJavaxFormatTest {
     @Test
     public void testNoVersionXml() throws Exception {
         String xml = "<OneString><data>12345</data></OneString>";
+        OneString.Builder builder = OneString.newBuilder();
+        formatter.merge(TextUtils.toInputStream(xml), builder);
+        assertEquals("12345", builder.getData());
+    }
+    
+    @Test
+    public void testWhitespaceXml() throws Exception {
+        String xml = " <OneString>  <data>12345</data>       </OneString>";
         OneString.Builder builder = OneString.newBuilder();
         formatter.merge(TextUtils.toInputStream(xml), builder);
         assertEquals("12345", builder.getData());
