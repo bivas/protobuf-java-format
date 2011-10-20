@@ -161,7 +161,7 @@ public class XmlJavaxFormat extends ProtobufFormatter {
                 final String messageName = messageElement.asStartElement().getName().getLocalPart();
                 assert builder.getDescriptorForType().getName().equals(messageName);
 
-                while (parser.hasNext()) {
+                while (parser.hasNext() && !parser.peek().isEndDocument()) {
                     XMLEvent event = parser.nextTag();
                 
                     if (event.isStartElement()) {
@@ -433,7 +433,8 @@ public class XmlJavaxFormat extends ProtobufFormatter {
             Object result = null;
             if (event.isCharacters()) {
                 result = handlePrimitive(parser, field, event.asCharacters().getData());
-            } else if (event.isStartElement() && field.getJavaType() == FieldDescriptor.JavaType.MESSAGE) {
+            } else if ((event.isStartElement() || event.isEndElement()) && 
+                    field.getJavaType() == FieldDescriptor.JavaType.MESSAGE) {
                 result = handleObject(parser, event, extensionRegistry, builder, field, extension);
             }
             
@@ -614,14 +615,22 @@ public class XmlJavaxFormat extends ProtobufFormatter {
         Message.Builder subBuilder = createSubBuilder(builder, field, extension);
 
         XMLEvent event = startEvent;
+        int depth = 0; // initialize to 0
         do {
             if (event.isStartElement()) {
+                depth++; // we're inside the element
                 mergeField(parser, event, 
                         extensionRegistry, subBuilder);
-                XMLEvent endElement = parser.nextTag();
-                assert endElement.isEndElement();
-                if (endElement.asEndElement().getName().equals(startEvent.asStartElement().getName())) {
-                    break; // done with our object
+                XMLEvent nextEvent = parser.nextTag();
+                
+                if (nextEvent.isEndElement()) {
+                    depth--;
+                    // if we're back under the top level obj, and there is another close, we're done.
+                    if (depth <= 0 && parser.peek().isEndElement()) {
+                        break;
+                    }
+                } else if (nextEvent.isStartElement()) {
+                    depth++;
                 }
             } else {
                 // something is potentially wrong..

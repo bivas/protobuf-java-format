@@ -30,16 +30,22 @@ package com.googlecode.protobuf.format;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 
 import org.junit.Test;
 
 import protobuf_unittest.UnittestProto;
+import protobuf_unittest.UnittestProto.ForeignMessage;
 import protobuf_unittest.UnittestProto.OneString;
 import protobuf_unittest.UnittestProto.TestAllTypes;
+import protobuf_unittest.UnittestProto.TestCamelCaseFieldNames;
 import protobuf_unittest.UnittestProto.TestEmptyMessage;
 import protobuf_unittest.UnittestProto.TestNestedExtension;
+import protobuf_unittest.UnittestProto.TestRequired;
+import protobuf_unittest.UnittestProto.TestRequiredForeign;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.ExtensionRegistry;
@@ -72,6 +78,42 @@ public class XmlJavaxFormatTest {
         assertEquals("xml doesn't match", XML_VERSION + allFieldsSetText, javaText);
     }
 
+    @Test
+    public void testNestedMessages() throws Exception {
+        TestRequiredForeign.Builder builder = TestRequiredForeign.newBuilder();
+        builder.addRepeatedMessage(TestRequired.newBuilder().setA(1).setB(3).setC(5).build());
+        builder.addRepeatedMessage(TestRequired.newBuilder().setA(9).setB(11).setC(13).build());
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        TestRequiredForeign builtMsg = builder.build();
+        formatter.print(builtMsg, output);
+        TestRequiredForeign.Builder builder2 = TestRequiredForeign.newBuilder();
+        formatter.merge(new ByteArrayInputStream(output.toByteArray()), builder2);
+        assertEquals(builtMsg.toString(), builder2.build().toString());
+    }
+    
+    @Test
+    public void testNestedEmptyMessages() throws Exception {
+        TestCamelCaseFieldNames.Builder builder = TestCamelCaseFieldNames.newBuilder();
+        builder.addRepeatedMessageField(ForeignMessage.newBuilder().build());
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        TestCamelCaseFieldNames builtMsg = builder.build();
+        formatter.print(builtMsg, output);
+        TestCamelCaseFieldNames.Builder builder2 = TestCamelCaseFieldNames.newBuilder();
+        formatter.merge(new ByteArrayInputStream(output.toByteArray()), builder2);
+        assertEquals(builtMsg.toString(), builder2.build().toString());
+    }
+    
+    @Test
+    public void testEmptyMessage() throws Exception {
+        TestCamelCaseFieldNames.Builder builder = TestCamelCaseFieldNames.newBuilder();
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        TestCamelCaseFieldNames builtMsg = builder.build();
+        formatter.print(builtMsg, output);
+        TestCamelCaseFieldNames.Builder builder2 = TestCamelCaseFieldNames.newBuilder();
+        formatter.merge(new ByteArrayInputStream(output.toByteArray()), builder2);
+        assertEquals(builtMsg.toString(), builder2.build().toString());
+    }
+    
     @Test
     public void testPrintUnknownFields() throws Exception {
         // Test printing of unknown fields in a message.
