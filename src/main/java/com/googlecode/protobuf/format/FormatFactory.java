@@ -12,7 +12,7 @@ public class FormatFactory {
 	
 	public FormatFactory() {}
 	
-	enum Formatter {
+	public enum Formatter {
 		COUCHDB (CouchDBFormat.class),
 		HTML (HtmlFormat.class),
 		JAVA_PROPS (JavaPropsFormat.class),
