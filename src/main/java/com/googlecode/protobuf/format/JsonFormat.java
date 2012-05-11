@@ -1,18 +1,18 @@
 package com.googlecode.protobuf.format;
-/* 
+/*
 	Copyright (c) 2009, Orbitz World Wide
 	All rights reserved.
 
-	Redistribution and use in source and binary forms, with or without modification, 
+	Redistribution and use in source and binary forms, with or without modification,
 	are permitted provided that the following conditions are met:
 
-		* Redistributions of source code must retain the above copyright notice, 
+		* Redistributions of source code must retain the above copyright notice,
 		  this list of conditions and the following disclaimer.
-		* Redistributions in binary form must reproduce the above copyright notice, 
-		  this list of conditions and the following disclaimer in the documentation 
+		* Redistributions in binary form must reproduce the above copyright notice,
+		  this list of conditions and the following disclaimer in the documentation
 		  and/or other materials provided with the distribution.
-		* Neither the name of the Orbitz World Wide nor the names of its contributors 
-		  may be used to endorse or promote products derived from this software 
+		* Neither the name of the Orbitz World Wide nor the names of its contributors
+		  may be used to endorse or promote products derived from this software
 		  without specific prior written permission.
 
 	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -91,7 +91,7 @@ public class JsonFormat extends AbstractCharBasedFormatter {
         generator.print("}");
     }
 
-   
+
     protected void print(Message message, JsonGenerator generator) throws IOException {
 
         for (Iterator<Map.Entry<FieldDescriptor, Object>> iter = message.getAllFields().entrySet().iterator(); iter.hasNext();) {
@@ -267,7 +267,7 @@ public class JsonFormat extends AbstractCharBasedFormatter {
     }
 
 
-    
+
 
     /**
      * An inner class for writing text to the output stream.
@@ -611,7 +611,7 @@ public class JsonFormat extends AbstractCharBasedFormatter {
                 return Double.NaN;
             }
             try {
-                double result = Double.parseDouble(currentToken);
+                double result = Double.parseDouble(prepareNumberFromString(currentToken));
                 nextToken();
                 return result;
             } catch (NumberFormatException e) {
@@ -636,7 +636,7 @@ public class JsonFormat extends AbstractCharBasedFormatter {
                 return Float.NaN;
             }
             try {
-                float result = Float.parseFloat(currentToken);
+                float result = Float.parseFloat(prepareNumberFromString(currentToken));
                 nextToken();
                 return result;
             } catch (NumberFormatException e) {
@@ -822,7 +822,7 @@ public class JsonFormat extends AbstractCharBasedFormatter {
             field = type.findFieldByNumber(Integer.parseInt(name));
             unknown = true;
         }
-        
+
         // Finally, look for extensions
         extension = extensionRegistry.findExtensionByName(name);
         if (extension != null) {
@@ -1101,7 +1101,7 @@ public class JsonFormat extends AbstractCharBasedFormatter {
         }
         return builder.toString();
     }
-	
+
 	static String unicodeEscaped(char ch) {
 		if (ch < 0x10) {
 			return "\\u000" + Integer.toHexString(ch);
@@ -1229,7 +1229,7 @@ public class JsonFormat extends AbstractCharBasedFormatter {
     /**
      * Implements JSON string escaping as specified <a href="http://www.ietf.org/rfc/rfc4627.txt">here</a>.
      * <ul>
-     *  <li>The following characters are escaped by prefixing them with a '\' : \b,\f,\n,\r,\t,\,"</li> 
+     *  <li>The following characters are escaped by prefixing them with a '\' : \b,\f,\n,\r,\t,\,"</li>
      *  <li>Other control characters in the range 0x0000-0x001F are escaped using the \\uXXXX notation</li>
      *  <li>UTF-16 surrogate pairs are encoded using the \\uXXXX\\uXXXX notation</li>
      *  <li>any other character is printed as-is</li>
@@ -1415,7 +1415,7 @@ public class JsonFormat extends AbstractCharBasedFormatter {
             radix = 8;
         }
 
-        String numberText = text.substring(pos);
+        String numberText = prepareNumberFromString(text.substring(pos));
 
         long result = 0;
         if (numberText.length() < 16) {
@@ -1478,5 +1478,20 @@ public class JsonFormat extends AbstractCharBasedFormatter {
         }
 
         return result;
+    }
+
+    /**
+     * Accept "" empty string
+     * and number in quote "6" as number
+     */
+    private static String prepareNumberFromString(String numberText) {
+
+        numberText = numberText.replaceAll("\"", "");
+
+        if (numberText.equals("")) {
+            numberText = "0"; // default value
+        }
+
+        return numberText;
     }
 }
