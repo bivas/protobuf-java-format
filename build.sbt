@@ -2,7 +2,7 @@ organization := "com.libitec"
 
 name := "protobuf-java-format"
 
-version := "0.1.3"
+version := "0.1.4"
 
 scalaVersion := "2.9.1"
 
