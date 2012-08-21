@@ -1,8 +1,8 @@
 #!/bin/bash
 
-BASEPATH=$(cd "$(dirname "$0")/"; pwd)
-PROTOPATH="$BASEPATH/src/test/resources"
+PROTOPATH=$(cd "$(dirname "$0")/src/test/resources"; pwd)
 PROTOFILES=`find $PROTOPATH -iname *.proto | xargs $1`
 
-protoc -I=$PROTOPATH --java_out=$BASEPATH/src/test/java $PROTOFILES
+rm -rf $PROTOPATH/../java/*
+protoc -I=$PROTOPATH --java_out=$PROTOPATH/../java/ $PROTOFILES
 echo "ok"
