@@ -4,7 +4,7 @@ name := "protobuf-java-format"
 
 version := "0.1.4"
 
-scalaVersion := "2.9.1"
+scalaVersion := "2.9.2"
 
 libraryDependencies ++= Seq(
   "com.google.protobuf" % "protobuf-java" % "2.4.1" withSources(),
