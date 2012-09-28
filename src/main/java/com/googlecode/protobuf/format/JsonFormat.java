@@ -487,6 +487,13 @@ public class JsonFormat extends AbstractCharBasedFormatter {
         }
 
         /**
+         * Returns {@code true} if the next token is an float, but does not consume it.
+         */
+        public boolean lookingAtFloat() {
+            return lookingAtInteger() && currentToken.contains(".");
+        }
+
+        /**
          * Returns {@code true} if the next token is an integer, but does not consume it.
          */
         public boolean lookingAtInteger() {
@@ -885,6 +892,8 @@ public class JsonFormat extends AbstractCharBasedFormatter {
             // Primitive value
             if ("null".equals(tokenizer.currentToken())) {
                 tokenizer.consume("null");
+            } else if (tokenizer.lookingAtFloat()) {
+                tokenizer.consumeFloat();
             } else if (tokenizer.lookingAtInteger()) {
                 tokenizer.consumeInt64();
             } else if (tokenizer.lookingAtBoolean()) {
