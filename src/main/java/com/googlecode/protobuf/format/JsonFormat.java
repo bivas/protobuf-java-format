@@ -674,7 +674,14 @@ public class JsonFormat extends AbstractCharBasedFormatter {
         public String consumeString() throws ParseException {
           char quote = currentToken.length() > 0 ? currentToken.charAt(0) : '\0';
           if ((quote != '\"') && (quote != '\'')) {
-              throw parseException("Expected string.");
+              try {
+                String result = currentToken.replace(',', '.');
+                Double.parseDouble(result);
+                nextToken();
+                return result;
+              } catch (NumberFormatException e) {
+                throw parseException("Expected string.");
+              }
           }
 
           if ((currentToken.length() < 2)
