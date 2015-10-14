@@ -21,7 +21,7 @@ import static com.googlecode.protobuf.format.util.TextUtils.*;
  * (c) 2009-10 Orbitz World Wide. All Rights Reserved.
  *
  * @author aantonov@orbitz.com Alex Antonov
- *         <p/>
+ *         <p>
  *         Based on the original code by:
  * @author wenboz@google.com Wenbo Zhu
  * @author kenton@google.com Kenton Varda

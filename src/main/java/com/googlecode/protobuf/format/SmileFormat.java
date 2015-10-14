@@ -51,7 +51,6 @@ import com.google.protobuf.Message;
  *         Based on the original code by:
  * @author eliran.bivas@gmail.com Eliran Bivas
  * @author aantonov@orbitz.com Alex Antonov
- *         <p/>
  * @author wenboz@google.com Wenbo Zhu
  * @author kenton@google.com Kenton Varda
  */

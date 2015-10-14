@@ -36,7 +36,7 @@ import java.io.UnsupportedEncodingException;
  * (c) 2009-10 protobuf-java-format. All Rights Reserved.
  *
  * @author eliran.bivas@gmail.com Eliran Bivas
- *         <p/>
+ *         <p>
  *         Based on the original code by:
  * 		   http://rgagnon.com/javadetails/java-0596.html
  */

@@ -55,7 +55,7 @@ import static com.googlecode.protobuf.format.util.TextUtils.*;
  *
  * @author eliran.bivas@gmail.com Eliran Bivas
  * @author aantonov@orbitz.com Alex Antonov
- *         <p/>
+ *         <p>
  *         Based on the original code by:
  * @author wenboz@google.com Wenbo Zhu
  * @author kenton@google.com Kenton Varda
@@ -271,11 +271,11 @@ public final class XmlFormat extends AbstractCharBasedFormatter {
 
     /**
      * Represents a stream of tokens parsed from a {@code String}.
-     * <p/>
+     * <p>
      * <p>
      * The Java standard library provides many classes that you might think would be useful for
      * implementing this, but aren't. For example:
-     * <p/>
+     * <p>
      * <ul>
      * <li>{@code java.io.StreamTokenizer}: This almost does what we want -- or, at least, something
      * that would get us close to what we want -- except for one fatal flaw: It automatically
@@ -289,7 +289,7 @@ public final class XmlFormat extends AbstractCharBasedFormatter {
      * way to inspect the contents of delimiters, making it impossible to keep track of line and
      * column numbers.
      * </ul>
-     * <p/>
+     * <p>
      * <p>
      * Luckily, Java's regular expression support does manage to be useful to us. (Barely: We need
      * {@code Matcher.usePattern()}, which is new in Java 1.5.) So, we can use that, at least.
