@@ -2,7 +2,6 @@ package com.googlecode.protobuf.format;
 
 import com.google.protobuf.Message;
 import org.testng.annotations.DataProvider;
-import org.testng.annotations.Guice;
 import org.testng.annotations.Test;
 import org.testng.reporters.Files;
 import protobuf_unittest.UnittestProto;
