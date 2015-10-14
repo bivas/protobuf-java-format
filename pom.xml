@@ -113,9 +113,9 @@
 						<phase>generate-test-sources</phase>
 						<configuration>
 							<tasks>
-								<mkdir dir="target/generated-test-sources" />
+								<mkdir dir="${project.build.directory}/generated-test-sources" />
 								<exec executable="${protoc}" failonerror="true">
-									<arg value="--java_out=${project.basedir}/src/test/java" />
+									<arg value="--java_out=${project.build.directory}/generated-test-sources" />
 									<arg value="--proto_path=${project.basedir}/src/test/resources" />
 									<arg value="${project.basedir}/src/test/resources/proto/unittest.proto" />
 									<arg value="${project.basedir}/src/test/resources/proto/unittest_import.proto" />
