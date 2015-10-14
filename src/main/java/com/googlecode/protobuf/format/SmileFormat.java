@@ -34,11 +34,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.smile.SmileFactory;
-import org.codehaus.jackson.smile.SmileGenerator;
-import org.codehaus.jackson.smile.SmileParser;
-
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.dataformat.smile.SmileFactory;
+import com.fasterxml.jackson.dataformat.smile.SmileGenerator;
+import com.fasterxml.jackson.dataformat.smile.SmileParser;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.Message;
 
@@ -67,12 +66,12 @@ public class SmileFormat extends JsonJacksonFormat {
     public void merge(InputStream input, Charset cs,
     		ExtensionRegistry extensionRegistry, Message.Builder builder) throws IOException {
     	
-    	SmileParser parser = smileFactory.createJsonParser(input); 
+    	SmileParser parser = smileFactory.createParser(input);
     	merge(parser, extensionRegistry, builder);
     }
     
     protected JsonGenerator createGenerator(OutputStream output) throws IOException {
-    	SmileGenerator generator = smileFactory.createJsonGenerator(output);
+    	SmileGenerator generator = smileFactory.createGenerator(output);
     	generator.enable(SmileGenerator.Feature.WRITE_HEADER);
     	generator.enable(SmileGenerator.Feature.WRITE_END_MARKER);
     	generator.disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);

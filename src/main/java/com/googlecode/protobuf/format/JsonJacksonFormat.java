@@ -39,13 +39,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import org.codehaus.jackson.JsonEncoding;
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.JsonToken;
-
+import com.fasterxml.jackson.core.*;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.EnumDescriptor;
@@ -118,7 +112,7 @@ public class JsonJacksonFormat extends ProtobufFormatter {
     public void merge(InputStream input, Charset cs,
     		ExtensionRegistry extensionRegistry, Message.Builder builder) throws IOException {
     	
-    	JsonParser parser = jsonFactory.createJsonParser(input); 
+    	JsonParser parser = jsonFactory.createJsonParser(input);
     	merge(parser, extensionRegistry, builder);
     }
     
