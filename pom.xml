@@ -28,6 +28,16 @@
 		<system>issue tracker</system>
 		<url>http://code.google.com/p/protobuf-java-format/issues</url>
 	</issueManagement>
+	<distributionManagement>
+		<snapshotRepository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
+		<repository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+		</repository>
+	</distributionManagement>
 	<developers>
 		<developer>
 			<id>eliran.bivas</id>
@@ -36,6 +46,13 @@
 			<roles>
 				<role>owner</role>
 			</roles>
+		</developer>
+		<developer>
+			<name>Sheridan C Rawlins</name>
+			<id>sheridan.rawlins</id>
+			<email>sheridan.rawlins@yahoo.com</email>
+			<organization>Yahoo!</organization>
+			<organizationUrl>http://www.yahoo.com</organizationUrl>
 		</developer>
 	</developers>
 	<properties>
@@ -84,6 +101,17 @@
 	<build>
 		<plugins>
 			<plugin>
+				<groupId>org.sonatype.plugins</groupId>
+				<artifactId>nexus-staging-maven-plugin</artifactId>
+				<version>1.6.5</version>
+				<extensions>true</extensions>
+				<configuration>
+					<serverId>ossrh</serverId>
+					<nexusUrl>https://oss.sonatype.org/</nexusUrl>
+					<autoReleaseAfterClose>true</autoReleaseAfterClose>
+				</configuration>
+			</plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>2.3.1</version>
@@ -109,7 +137,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.8</version>
+				<version>2.9.1</version>
 				<executions>
 					<execution>
 						<id>attach-javadoc</id>
@@ -166,7 +194,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-gpg-plugin</artifactId>
-						<version>1.1</version>
+						<version>1.5</version>
 						<executions>
 							<execution>
 								<id>sign-artifacts</id>
