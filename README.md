@@ -1,5 +1,6 @@
 Fork from http://code.google.com/p/protobuf-java-format/
 
+[![Build Status](https://travis-ci.org/bivas/protobuf-java-format.svg?branch=master)](https://travis-ci.org/bivas/protobuf-java-format)
 
 ## Description
 
