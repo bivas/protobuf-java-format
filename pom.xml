@@ -10,7 +10,7 @@
 	<name>protobuf-java-format</name>
 	<version>1.4-SNAPSHOT</version>
 	<description>Provide serialization and de-serialization of different formats based on Google’s protobuf Message. Enables overriding the default (byte array) output to text based formats such as XML, JSON and HTML.</description>
-	<url>http://code.google.com/p/protobuf-java-format/</url>
+	<url>https://github.com/bivas/protobuf-java-format</url>
 	<packaging>jar</packaging>
 	<scm>
 		<connection>scm:svn:https://protobuf-java-format.googlecode.com/svn/trunk/</connection>
