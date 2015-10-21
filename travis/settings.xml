@@ -1,0 +1,23 @@
+<settings>
+    <servers>
+        <server>
+            <id>ossrh</id>
+            <username>${env.SONATYPE_USER}</username>
+            <password>${env.SONATYPE_PASSWD}</password>
+        </server>
+    </servers>
+
+    <profiles>
+        <profile>
+            <id>ossrh</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <gpg.executable>gpg2</gpg.executable>
+                <gpg.keyname>${env.GPG_USER}</gpg.keyname>
+                <gpg.passphrase>${env.GPG_PASSWD}</gpg.passphrase>
+            </properties>
+        </profile>
+    </profiles>
+</settings>

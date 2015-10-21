@@ -182,7 +182,7 @@
 			<id>release-sign-artifacts</id>
 			<activation>
 				<property>
-					<name>signArtifacts</name>
+					<name>release</name>
 					<value>true</value>
 				</property>
 			</activation>

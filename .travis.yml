@@ -1,11 +1,21 @@
 language: java
 jdk:
-  - oraclejdk8
+- oraclejdk8
+sudo: true
 before_install:
-  - sudo apt-get update -qq
-  - sudo apt-get install -y wget tar make
+- sudo apt-get update -qq
+- sudo apt-get install -y wget tar make
 install:
-  - wget https://github.com/google/protobuf/releases/download/v2.5.0/protobuf-2.5.0.tar.gz
-  - tar -xzvf protobuf-2.5.0.tar.gz
-  - C=$(pwd) && cd protobuf-2.5.0 && ./configure --prefix=/usr && make && sudo make install && cd $C
-
+- wget https://github.com/google/protobuf/releases/download/v2.5.0/protobuf-2.5.0.tar.gz
+- tar -xzvf protobuf-2.5.0.tar.gz
+- pushd protobuf-2.5.0 && ./configure --prefix=/usr && make && sudo make install &&
+  popd
+after_success:
+- bash travis-deploy-sonatype/scripts/deploy.sh 80426308c9a3 travis/scr.travis.gpg.asc.enc
+  travis/settings.xml
+env:
+  global:
+  - secure: KOSOj+3STSjtQfWay58JBQYr3Zelc0l9qsNhxYtPossOwBOMxcnMxHwj6FQfIv02Unjm/OVeM/jHiHJkJFZhTF+ajPx3iB5v0aTouyehPi0YZ7jlymtOdU19/oGX5tV0W+M2A0unuTSxfvQRQhAfk8CJSEPuGP7kajfd6LZiWIiG3yf3K+SFFwI6ZK2bewEZVvTsJx1jwHb2WdsB2urEJxcL/MJRzwVvRW0sDn5ecaWveiScMYEHZ4a5CKhTL+n4xva8DF21nfQYukWAggcYksEeqsiK8tn8OFnQgFff/++A7LovNGdyYgd6q4vM82QzglrPuf5v5meGYIMD7PI4ZY7mYlGvl6N97lKJcyjq7Nz4CuGWQqeQ4qHVEldVsRC7Q4cuplPryCr2OPcW0XwS3sNOCA42M343Xl42LBLXtuHkyEB2XR8bXdZJxvngipvRoJ1VP3dYzMI254OEu8lUAvUb39Xu84d2W2Vl8zXI3z/mOyYAuoo5eGW9e0Jc02pWIVzFASyMjudz3mJQ8RcnXwxKXegO4hn0zRwU+hCefTP+hjHLIVgt8NfDQkWEcIPArvnn3CoYCPEPGwD2EMTI9yp3JJCdHsAtJLXPPVgbU5PW0nW72BtM64UoZiZKBAzIh2HP+Gjr3bNOUYEZAQfXG/Y6APStYLq9ajOBaCERHMA=
+  - secure: BuQGqJGIzInKpragGdouVMiLV7hzTDRUYRuN+juZhRFEYDSoKP0EPFuHQfILNMl83hmcrlk4VE+9pGa1NSF4mDrkBQrMpG/aZT+NQ+7b7zxqqsXpkFbrAVB+/wPf+jWzMDrU72YHXseadM+CGHwYDewI2F7Vfcf+cKvOWmIxq2KDUYkE1waazt+kuLNa8kcXNBrjr/3oV+0ZPR3G1lQdhi9dvrP/GMFjs+X+omSo9d6tPL61pL2m4+bxnGVujSktqwumwphNJuYAUeo8JBW/DPqWnE59aBPAGKdwwfu4ya47+1GzVVV0ASrzNFUZxrB+RqumhyxG035dyV5Xe7OjjC0irfv+jqzIZBZgUxSHUvFekAvhEPzOerpHgg3qLtNRI5bXOsgJkPxx6Cb/DalDLX88p9qGDDT1S2ShWv1mIMScrYXQWC4rQ/wVVQuFI9kZo6y06gHZwlcWO/USyetOMeAyVZOSwad4bKNS62y/Y89p8c3qps200dzm9yVhoGcKLyTwfh89spV9euNsbvWcMATlQjAbtHaNvKpd7OXtanY24yXXMGIm7DY7LoTxrBJl1uS/VeGTg/cSbOaliF471vZLOAxc+VYCZM26gi0c4gjxBtyn6fSyfvDNK/F14fP6/ieACyOCeW96ZMj6QUyDTH3lt2mpkEZw9BJ31q8Hg4U=
+  - secure: iKBvB2GdRHr6uQ+gTj+c4Wbx7RIaicbhAgUqfCbg4cdxgD3eAhTktWfPJpYhs/jC7fxkgp0rQQxi0lfkyEhchXcSlLV2S0g+KRyl3Wb8ggWsNdZ8dJw3csm9QJnc8E8WmZuNgLpQVLaC618VqkI49vAmXDop4H6QfZ2R9wRz0nUDHmsdu44aB2hZh9r3VtSeshPTPj+u3CYb0wYfGR02kjh9ZR5ld/rhJsdce4F1fHblSeefRfVjmO7GOVmMp5Sn1REuUOl0VXfVqz8xc/a6uotzK8rEdvySHjx+U4e+nKHTxUVFRBcxyiYy44ZvZ8jV3Pvk2i51A1gpRKF5aePk8Vs46yTBwT8BxPLcvAmuuUF/BrH3yod2BJ4G52KPkL7TkSgqnNFelgeDtFnlHYPmwBqEMJWFUD4xcfVtXUTwnEbOWYxY1lxunquF1/olB+1Zb7reghjP4M+ya2SFy1dJBVkTLcs9sJ93D2hq31ECiN2N/n6a4NHS67/Xi+pU/qOoBBoUppb+vn5CZDVxXAOwmMZ9EjxKl2U8jMXxcO4dQdS9lpu37Fo3eDbAAJg5VPIi0S0P/TfaZmktl38//rFuvi+wLeoQysaB1x7nNLJmr/4xPCgNc9dZqnjn88JCqLg7TXvR37N65mvoDCVoERun3qrtdIR8mNS27cxjNUxWR3E=
+  - secure: iG3d6Zg+ScjHuouI+mREQHtVx1ZLtm839AK/97UZsBUoFXBMo4L8Hx1hvHuKEjcloaWdrEjljOhxDLcCpz2VvSIArYObNCWX4/koCsFMUdM098Lb+Ntj2cndjKraxPWb6X6qvwFmgB+o5xkSHGUv/+FVz1PHKgiT0m1aqVAxDdmZHudzaH/jhYHW+F3BdzhvII38N9pbaJXBf7Bd9iY7ce8Lddgg2EJbaxp0zoCC3PHmN3dVsjRvBSckMIqu4vohhDhSx80SHpQJbwCU0NAkCxxEsRNzEq9Hg+6hdpNOPjFt2+o8XNXKWxw3LdXf+O3JXWqkZreiFR0uLIpucPHUNQ7dq5V2FGVt+2yLGKV9hQ+kG07t73NcCcYUZGjyZqlrzd1Nu9QDsbXJxwZnl/uRvDJDUjWITkqCHoCisJ2rciH9W+mezKZ2JYYsO4v5JSWEQbMeODa0L3rNhoezYLdw3rFO+kcBLhPgasMk6gqaWlisx+Ly2gcX3k4ZhJQx/BPY0boIW938JCqD9w+raCrqynG4Q2WPhLUC13bHqToONl2U1gKr1cNbzI7Tut2/lHluzXWr/v3kElPdzfDbs7p03OiE1ECfEp2MyqbB3xz4oB4l00Xlx1NGm80vI9jVNII7tEZvX98HhAQ3HXcfVpD9Xesl7A17go7jLQK0YxUnaXQ=
