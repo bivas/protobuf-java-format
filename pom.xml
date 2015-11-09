@@ -8,7 +8,7 @@
 	<groupId>com.googlecode.protobuf-java-format</groupId>
 	<artifactId>protobuf-java-format</artifactId>
 	<name>protobuf-java-format</name>
-	<version>1.4</version>
+	<version>1.5-SNAPSHOT</version>
 	<description>Provide serialization and de-serialization of different formats based on Google’s protobuf Message. Enables overriding the default (byte array) output to text based formats such as XML, JSON and HTML.</description>
 	<url>https://github.com/bivas/protobuf-java-format</url>
 	<packaging>jar</packaging>
