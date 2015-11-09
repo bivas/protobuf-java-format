@@ -1,4 +1,6 @@
 # Release Notes for protobuf-java-format
+* 1.4
+   * [#15](https://github.com/bivas/protobuf-java-format/issues/15) - Fix unsigned values for JacksonFormatter. 
 * 1.3
    * [#4](https://github.com/bivas/protobuf-java-format/issues/4) - Upgrade to com.fasterxml version of Jackson. 
    * [#3](https://github.com/bivas/protobuf-java-format/issues/3) - Updated dependency on protobuf-java to 2.5.0.
