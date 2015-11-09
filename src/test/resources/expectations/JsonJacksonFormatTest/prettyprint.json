@@ -1,3 +1,4 @@
 {
+  "optional_float" : 0.0,
   "optional_foreign_enum" : "FOREIGN_BAR"
 }

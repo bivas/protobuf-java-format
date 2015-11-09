@@ -55,27 +55,17 @@ public class TextUtils {
             return Long.toString((value) & 0x00000000FFFFFFFFL);
         }
     }
-    
-    /**
-     * Convert an unsigned 32-bit integer to a string.
-     */
-    public static Integer unsignedInt(int value) {
-        if (value < 0) {
-            return (int) ((value) & 0x00000000FFFFFFFFL);
-        }
-        return value;
-    }
 
     /**
-     * Convert an unsigned 64-bit integer to a string.
+     * Convert an unsigned 64-bit integer to a {@link BigInteger}.
      */
-    public static Long unsignedLong(long value) {
+    public static BigInteger unsignedLong(long value) {
         if (value < 0) {
             // Pull off the most-significant bit so that BigInteger doesn't think
             // the number is negative, then set it again using setBit().
-            return BigInteger.valueOf(value & 0x7FFFFFFFFFFFFFFFL).setBit(63).longValue();
+            return BigInteger.valueOf(value & 0x7FFFFFFFFFFFFFFFL).setBit(63);
         }
-        return value;
+        return BigInteger.valueOf(value);
     }
 
     /** 

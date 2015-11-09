@@ -33,6 +33,7 @@ import static com.googlecode.protobuf.format.util.TextUtils.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.List;
@@ -67,8 +68,10 @@ import com.googlecode.protobuf.format.util.TextUtils;
  */
 public class JsonJacksonFormat extends ProtobufFormatter {
     private static JsonFactory jsonFactory = new JsonFactory();
-	
-		
+    private static final long MAX_UINT_VALUE = (((long) Integer.MAX_VALUE) << 1) + 1;
+    private static final BigInteger MAX_ULONG_VALUE =
+            BigInteger.valueOf(Long.MAX_VALUE).shiftLeft(1).add(BigInteger.ONE);
+
     /**
      * Outputs a Smile representation of the Protocol Message supplied into the parameter output.
      * (This representation is the new version of the classic "ProtocolPrinter" output from the
@@ -79,7 +82,7 @@ public class JsonJacksonFormat extends ProtobufFormatter {
     	print(message, generator);
     	generator.close();
     }
-    
+
     /**
      * Outputs a Smile representation of the Protocol Message supplied into the parameter output.
      * (This representation is the new version of the classic "ProtocolPrinter" output from the
@@ -102,29 +105,29 @@ public class JsonJacksonFormat extends ProtobufFormatter {
         generator.writeEndObject();
         generator.close();
     }
-    
-        
+
+
     /**
      * Parse a text-format message from {@code input} and merge the contents into {@code builder}.
      * Extensions will be recognized if they are registered in {@code extensionRegistry}.
-     * @throws IOException 
+     * @throws IOException
      */
     public void merge(InputStream input, Charset cs,
     		ExtensionRegistry extensionRegistry, Message.Builder builder) throws IOException {
-    	
+
     	JsonParser parser = jsonFactory.createJsonParser(input);
     	merge(parser, extensionRegistry, builder);
     }
-    
+
     /**
      * Parse a text-format message from {@code input} and merge the contents into {@code builder}.
      * Extensions will be recognized if they are registered in {@code extensionRegistry}.
-     * @throws IOException 
+     * @throws IOException
      */
-    public void merge(JsonParser parser,                 
+    public void merge(JsonParser parser,
     						 ExtensionRegistry extensionRegistry,
                              Message.Builder builder) throws IOException {
-    	
+
         JsonToken token = parser.nextToken();
         if (token.equals(JsonToken.START_OBJECT)) {
         	token = parser.nextToken();
@@ -133,22 +136,22 @@ public class JsonJacksonFormat extends ProtobufFormatter {
         	mergeField(parser, extensionRegistry, builder);
         	token = parser.nextToken();
         }
-        
+
         // Test to make sure the tokenizer has reached the end of the stream.
         if (parser.nextToken() != null) {
             throw new RuntimeException("Expecting the end of the stream, but there seems to be more data!  Check the input for a valid JSON format.");
         }
     }
-    
-    
-    
+
+
+
     protected JsonGenerator createGenerator(OutputStream output) throws IOException {
     	JsonGenerator generator = jsonFactory.createJsonGenerator(output, JsonEncoding.UTF8);
     	generator.disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
     	return generator;
     }
 
-    
+
     protected void printMessage(Message message, JsonGenerator generator) throws IOException {
 
         for (Iterator<Map.Entry<FieldDescriptor, Object>> iter = message.getAllFields().entrySet().iterator(); iter.hasNext();) {
@@ -207,21 +210,21 @@ public class JsonJacksonFormat extends ProtobufFormatter {
             case SFIXED32:
             	generator.writeNumber((Integer)value);
             	break;
-            
+
             case INT64:
             case SINT64:
             case SFIXED64:
             	generator.writeNumber((Long)value);
             	break;
-            	
+
             case FLOAT:
             	generator.writeNumber((Float)value);
             	break;
-            	
+
             case DOUBLE:
             	generator.writeNumber((Double)value);
             	break;
-            	
+
             case BOOL:
                 // Good old toString() does what we want for these types.
                 generator.writeBoolean((Boolean)value);
@@ -229,7 +232,7 @@ public class JsonJacksonFormat extends ProtobufFormatter {
 
             case UINT32:
             case FIXED32:
-                generator.writeNumber(unsignedInt((Integer) value));
+                generator.writeNumber(Integer.toUnsignedLong((Integer)value));
                 break;
 
             case UINT64:
@@ -264,7 +267,7 @@ public class JsonJacksonFormat extends ProtobufFormatter {
     protected void printUnknownFields(UnknownFieldSet unknownFields, JsonGenerator generator) throws IOException {
         for (Map.Entry<Integer, UnknownFieldSet.Field> entry : unknownFields.asMap().entrySet()) {
             UnknownFieldSet.Field field = entry.getValue();
-            
+
             generator.writeArrayFieldStart(entry.getKey().toString());
             for (long value : field.getVarintList()) {
                 generator.writeNumber(value);
@@ -292,13 +295,13 @@ public class JsonJacksonFormat extends ProtobufFormatter {
 
     // =================================================================
     // Parsing
-  
+
 
     /**
      * Parse a single field from {@code parser} and merge it into {@code builder}. If a ',' is
      * detected after the field ends, the next field will be parsed automatically
-     * @throws IOException 
-     * @throws JsonParseException 
+     * @throws IOException
+     * @throws JsonParseException
      */
     protected void mergeField(JsonParser parser,
                                    ExtensionRegistry extensionRegistry,
@@ -311,7 +314,7 @@ public class JsonJacksonFormat extends ProtobufFormatter {
 
         if (token != null) {
             String name = parser.getCurrentName();
-            
+
             if (name.contains(".")) {
             	// should be an extension
             	extension = extensionRegistry.findExtensionByName(name);
@@ -366,7 +369,7 @@ public class JsonJacksonFormat extends ProtobufFormatter {
 
         if (field != null) {
         	token = parser.nextToken();
-        	
+
             boolean array = token.equals(JsonToken.START_ARRAY);
 
             if (array) {
@@ -384,7 +387,7 @@ public class JsonJacksonFormat extends ProtobufFormatter {
     private void handleMissingField(String fieldName, JsonParser parser,
                                            ExtensionRegistry extensionRegistry,
                                            UnknownFieldSet.Builder builder) throws IOException {
-    	
+
         JsonToken token = parser.nextToken();
         if (token.equals(JsonToken.START_OBJECT)) {
             // Message structure
@@ -430,13 +433,13 @@ public class JsonJacksonFormat extends ProtobufFormatter {
 
     private Object handlePrimitive(JsonParser parser, FieldDescriptor field) throws IOException {
         Object value = null;
-        
+
         JsonToken token = parser.getCurrentToken();
-        
+
         if (token.equals(JsonToken.VALUE_NULL)) {
             return value;
         }
-        
+
         switch (field.getType()) {
             case INT32:
             case SINT32:
@@ -452,20 +455,21 @@ public class JsonJacksonFormat extends ProtobufFormatter {
 
             case UINT32:
             case FIXED32:
-            	int valueInt = parser.getIntValue();
-            	if (valueInt < 0) {
-            		throw new NumberFormatException("Number must be positive: " + valueInt);
+            	long valueLong = parser.getLongValue();
+            	if (valueLong < 0 || valueLong > MAX_UINT_VALUE) {
+            		throw new NumberFormatException("Number must be positive: " + valueLong);
             	}
-            	value = valueInt;
+            	value = (int) valueLong;
                 break;
 
             case UINT64:
             case FIXED64:
-            	long valueLong = parser.getLongValue();
-            	if (valueLong < 0) {
-            		throw new NumberFormatException("Number must be positive: " + valueLong);
+            	BigInteger valueBigInt = parser.getBigIntegerValue();
+                // valueBigInt < 0 || valueBigInt > MAX_ULONG_VALUE
+            	if (valueBigInt.compareTo(BigInteger.ZERO) == -1 || valueBigInt.compareTo(MAX_ULONG_VALUE) == 1) {
+            		throw new NumberFormatException("Number must be positive: " + valueBigInt);
             	}
-            	value = valueLong;
+            	value = valueBigInt.longValue();
                 break;
 
             case FLOAT:
@@ -518,7 +522,7 @@ public class JsonJacksonFormat extends ProtobufFormatter {
         }
         return value;
     }
-    
+
 
     private Object handleObject(JsonParser parser,
                                        ExtensionRegistry extensionRegistry,
