@@ -4,38 +4,19 @@ Fork from http://code.google.com/p/protobuf-java-format/
 
 ## Description
 
-Provide serialization and de-serialization of different formats based on Google’s protobuf Message. Enables overriding the default (byte array) output to text based formats such as XML, JSON and HTML.
+This fork adds control on how the protobuf enums are encoded. The original code is able to decode enums by either their name or their integer value depending on what is found in the encoded stream.
+It always and only encoded the enum values by name though: with this version it's possible to control that behaviour by an option provided by a (new) builder.
 
 ##Example
-For XML output, use XmlFormat
+ProtobufFormatter jsonFormat =
+            new FormatFactory()
+                    .createFormatter(FormatFactory.Formatter.JSON)
+                    .withEnumWriteMode(EnumWriteMode.NAME)            // This is the default behaviour
+                    .build();
+                    
+ProtobufFormatter jsonFormat =
+            new FormatFactory()
+                    .createFormatter(FormatFactory.Formatter.JSON)
+                    .withEnumWriteMode(EnumWriteMode.NUMBER)          // This is the new behaviour
+                    .build();
 
-```java
-Message someProto = SomeProto.getDefaultInstance();
-String xmlFormat = XmlFormat.printToString(someProto);
-```
-
-For XML input, use XmlFormat
-```java
-Message.Builder builder = SomeProto.newBuilder();
-String xmlFormat = _load xml document from a source_;
-XmlFormat.merge(xmlFormat, builder);
-```
-
-For Json output, use JsonFormat
-```java
-Message someProto = SomeProto.getDefaultInstance();
-String jsonFormat = JsonFormat.printToString(someProto);
-```
-
-For Json input, use JsonFormat
-```java
-Message.Builder builder = SomeProto.newBuilder();
-String jsonFormat = _load json document from a source_;
-JsonFormat.merge(jsonFormat, builder);
-```
-
-For HTML output, use HtmlFormat
-```java
-Message someProto = SomeProto.getDefaultInstance();
-String htmlFormat = HtmlFormat.printToString(someProto);
-```
