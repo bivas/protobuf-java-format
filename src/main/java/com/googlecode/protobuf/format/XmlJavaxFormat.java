@@ -28,8 +28,18 @@ package com.googlecode.protobuf.format;
 */
 
 
-import static com.googlecode.protobuf.format.util.TextUtils.*;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.Descriptors.Descriptor;
+import com.google.protobuf.Descriptors.EnumDescriptor;
+import com.google.protobuf.Descriptors.EnumValueDescriptor;
+import com.google.protobuf.Descriptors.FieldDescriptor;
+import com.google.protobuf.ExtensionRegistry;
+import com.google.protobuf.Message;
+import com.google.protobuf.UnknownFieldSet;
 
+import javax.xml.namespace.QName;
+import javax.xml.stream.*;
+import javax.xml.stream.events.XMLEvent;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -39,22 +49,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import javax.xml.namespace.QName;
-import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
-import javax.xml.stream.events.XMLEvent;
-
-import com.google.protobuf.ByteString;
-import com.google.protobuf.Descriptors.Descriptor;
-import com.google.protobuf.Descriptors.EnumDescriptor;
-import com.google.protobuf.Descriptors.EnumValueDescriptor;
-import com.google.protobuf.Descriptors.FieldDescriptor;
-import com.google.protobuf.ExtensionRegistry;
-import com.google.protobuf.Message;
-import com.google.protobuf.UnknownFieldSet;
+import static com.googlecode.protobuf.format.util.TextUtils.*;
 
 /**
  * <p>
@@ -77,8 +72,12 @@ public class XmlJavaxFormat extends ProtobufFormatter {
     
     private XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newFactory();
     private XMLInputFactory xmlInputFactory = XMLInputFactory.newFactory();
-	
-		
+
+    public XmlJavaxFormat(EnumWriteMode enumWriteMode) {
+        super(enumWriteMode);
+    }
+
+
     /**
      * Outputs a Smile representation of the Protocol Message supplied into the parameter output.
      * (This representation is the new version of the classic "ProtocolPrinter" output from the
@@ -286,6 +285,14 @@ public class XmlJavaxFormat extends ProtobufFormatter {
             }
 
             case ENUM: {
+                switch (enumWriteMode) {
+                    case NAME:
+                        generator.writeCharacters(((EnumValueDescriptor) value).getName());
+                        break;
+                    case NUMBER:
+                        generator.writeCharacters(Integer.toString(((EnumValueDescriptor) value).getNumber()));
+                        break;
+                }
             	generator.writeCharacters(((EnumValueDescriptor) value).getName());
                 break;
             }

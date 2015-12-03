@@ -60,7 +60,11 @@ public final class HtmlFormat extends AbstractCharBasedFormatter {
     private static final String FIELD_NAME_STYLE = "font-weight: bold; color: #669966;font-size: 14px; font-family: sans-serif;";
     private static final String FIELD_VALUE_STYLE = "color: #3300FF;font-size: 13px; font-family: sans-serif;";
 
-    
+    public HtmlFormat(EnumWriteMode enumWriteMode) {
+        super(enumWriteMode);
+    }
+
+
     public void print(final Message message, Appendable output) throws IOException {
     	HtmlGenerator generator = new HtmlGenerator(output);
         printTitle(message, generator);
@@ -206,7 +210,14 @@ public final class HtmlFormat extends AbstractCharBasedFormatter {
             }
 
             case ENUM: {
-                generator.print(((EnumValueDescriptor) value).getName());
+                switch (enumWriteMode) {
+                    case NAME:
+                        generator.print(((EnumValueDescriptor) value).getName());
+                        break;
+                    case NUMBER:
+                        generator.print(unsignedToString(((EnumValueDescriptor) value).getNumber()));
+                        break;
+                }
                 break;
             }
 

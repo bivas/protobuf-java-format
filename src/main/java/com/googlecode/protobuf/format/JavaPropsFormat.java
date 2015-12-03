@@ -1,17 +1,13 @@
 package com.googlecode.protobuf.format;
 
+import com.google.protobuf.*;
+
 import java.io.IOException;
 import java.math.BigInteger;
-import java.nio.CharBuffer;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.google.protobuf.ByteString;
-import com.google.protobuf.Descriptors;
-import com.google.protobuf.ExtensionRegistry;
-import com.google.protobuf.Message;
-import com.google.protobuf.UnknownFieldSet;
 import static com.googlecode.protobuf.format.util.TextUtils.*;
 
 /**
@@ -28,7 +24,11 @@ import static com.googlecode.protobuf.format.util.TextUtils.*;
  */
 public class JavaPropsFormat extends AbstractCharBasedFormatter {
 
-	/**
+    public JavaPropsFormat(EnumWriteMode enumWriteMode) {
+        super(enumWriteMode);
+    }
+
+    /**
 	 * Outputs a textual representation of the Protocol Message supplied into
 	 * the parameter output. (This representation is the new version of the
 	 * classic "ProtocolPrinter" output from the original Protocol Buffer system)
@@ -192,7 +192,14 @@ public class JavaPropsFormat extends AbstractCharBasedFormatter {
         break;
 
       case ENUM:
-        generator.print(((Descriptors.EnumValueDescriptor) value).getName());
+          switch (enumWriteMode) {
+              case NAME:
+                  generator.print(((Descriptors.EnumValueDescriptor) value).getName());
+                  break;
+              case NUMBER:
+                  generator.print(unsignedToString(((Descriptors.EnumValueDescriptor) value).getNumber()));
+                  break;
+          }
         break;
 
       case MESSAGE:

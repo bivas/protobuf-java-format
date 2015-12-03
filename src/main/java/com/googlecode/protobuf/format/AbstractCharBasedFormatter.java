@@ -8,22 +8,20 @@
 
 package com.googlecode.protobuf.format;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.nio.CharBuffer;
-import java.nio.charset.Charset;
-
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.Message;
 import com.google.protobuf.Message.Builder;
 import com.google.protobuf.UnknownFieldSet;
-import com.googlecode.protobuf.format.ProtobufFormatter.ParseException;
 import com.googlecode.protobuf.format.util.TextUtils;
 
+import java.io.*;
+import java.nio.charset.Charset;
+
 public abstract class AbstractCharBasedFormatter extends ProtobufFormatter {
+
+	public AbstractCharBasedFormatter(EnumWriteMode enumWriteMode) {
+		super(enumWriteMode);
+	}
 
 	@Override
 	public void print(Message message, OutputStream output, Charset cs)

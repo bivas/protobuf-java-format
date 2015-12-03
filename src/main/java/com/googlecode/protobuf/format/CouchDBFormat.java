@@ -1,11 +1,11 @@
 package com.googlecode.protobuf.format;
 
 
-import java.io.IOException;
-
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.Message;
 import com.google.protobuf.UnknownFieldSet;
+
+import java.io.IOException;
 
 /**
  * Created by IntelliJ IDEA.
@@ -15,6 +15,10 @@ import com.google.protobuf.UnknownFieldSet;
  * To change this template use File | Settings | File Templates.
  */
 public class CouchDBFormat extends JsonFormat {
+
+    public CouchDBFormat(EnumWriteMode enumWriteMode) {
+        super(enumWriteMode);
+    }
 
     /**
      * Outputs a textual representation of the Protocol Message supplied into the parameter output.

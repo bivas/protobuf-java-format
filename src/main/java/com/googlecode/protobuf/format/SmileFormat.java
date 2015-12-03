@@ -29,17 +29,17 @@ package com.googlecode.protobuf.format;
 */
 
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.charset.Charset;
-
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.dataformat.smile.SmileFactory;
 import com.fasterxml.jackson.dataformat.smile.SmileGenerator;
 import com.fasterxml.jackson.dataformat.smile.SmileParser;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.Message;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.charset.Charset;
 
 /**
  * Provide ascii text parsing and formatting support for proto2 instances. The implementation
@@ -57,7 +57,11 @@ import com.google.protobuf.Message;
 public class SmileFormat extends JsonJacksonFormat {
     private static SmileFactory smileFactory = new SmileFactory();
 
-    /**
+	public SmileFormat(EnumWriteMode enumWriteMode) {
+		super(enumWriteMode);
+	}
+
+	/**
      * Parse a text-format message from {@code input} and merge the contents into {@code builder}.
      * Extensions will be recognized if they are registered in {@code extensionRegistry}.
      * @throws IOException 

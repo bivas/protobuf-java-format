@@ -8,6 +8,8 @@
 
 package com.googlecode.protobuf.format;
 
+import java.lang.reflect.InvocationTargetException;
+
 public class FormatFactory {
 	
 	public FormatFactory() {}
@@ -31,14 +33,36 @@ public class FormatFactory {
 		}
 	}
 	
-	
-	public ProtobufFormatter createFormatter(Formatter formatter) {
-		try {
-			return formatter.getFormatterClass().newInstance();
-		} catch (InstantiationException e) {
-			throw new RuntimeException(e);
-		} catch (IllegalAccessException e) {
-			throw new RuntimeException(e);
+
+	public static class ProtobufFormatterBuilder {
+		private final Formatter formatter;
+		private EnumWriteMode enumWriteMode = EnumWriteMode.NAME;
+
+		public ProtobufFormatterBuilder(Formatter formatter) {
+			this.formatter = formatter;
 		}
+
+		public ProtobufFormatterBuilder withEnumWriteMode(EnumWriteMode enumWriteMode) {
+			this.enumWriteMode = enumWriteMode;
+			return this;
+		}
+
+		public ProtobufFormatter build() {
+			try {
+				return formatter.getFormatterClass().getConstructor(EnumWriteMode.class).newInstance(enumWriteMode);
+			} catch (InstantiationException e) {
+				throw new RuntimeException(e);
+			} catch (IllegalAccessException e) {
+				throw new RuntimeException(e);
+			} catch (NoSuchMethodException e) {
+				throw new RuntimeException(e);
+			} catch (InvocationTargetException e) {
+				throw new RuntimeException(e);
+			}
+		}
+	}
+
+	public ProtobufFormatterBuilder createFormatter(Formatter formatter) {
+		return new ProtobufFormatterBuilder(formatter);
 	}
 }

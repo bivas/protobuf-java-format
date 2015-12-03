@@ -17,12 +17,16 @@ import java.nio.charset.Charset;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.Message;
 import com.google.protobuf.UnknownFieldSet;
-import com.googlecode.protobuf.format.JavaPropsFormat.ParseException;
 
 public abstract class ProtobufFormatter {
     private Charset defaultCharset = Charset.defaultCharset();
+	protected final EnumWriteMode enumWriteMode;
 
-    /**
+	protected ProtobufFormatter(EnumWriteMode enumWriteMode) {
+		this.enumWriteMode = enumWriteMode;
+	}
+
+	/**
      * Set the default character set to use for input / output data streams
      * @param cs the character set to use by default, when unspecified
      */

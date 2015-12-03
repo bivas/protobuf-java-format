@@ -69,6 +69,10 @@ import static com.googlecode.protobuf.format.util.TextUtils.*;
  */
 public class JsonFormat extends AbstractCharBasedFormatter {
 
+    public JsonFormat(EnumWriteMode enumWriteMode) {
+        super(enumWriteMode);
+    }
+
     /**
      * Outputs a textual representation of the Protocol Message supplied into the parameter output.
      * (This representation is the new version of the classic "ProtocolPrinter" output from the
@@ -196,19 +200,24 @@ public class JsonFormat extends AbstractCharBasedFormatter {
                 generator.print("\"");
                 break;
 
-            case BYTES: {
+            case BYTES:
                 generator.print("\"");
                 generator.print(escapeBytes((ByteString) value));
                 generator.print("\"");
                 break;
-            }
 
-            case ENUM: {
-                generator.print("\"");
-                generator.print(((EnumValueDescriptor) value).getName());
-                generator.print("\"");
+            case ENUM:
+                switch (enumWriteMode) {
+                    case NAME:
+                        generator.print("\"");
+                        generator.print(((EnumValueDescriptor) value).getName());
+                        generator.print("\"");
+                        break;
+                    case NUMBER:
+                        generator.print(unsignedToString(((EnumValueDescriptor) value).getNumber()));
+                        break;
+                }
                 break;
-            }
 
             case MESSAGE:
             case GROUP:

@@ -5,7 +5,6 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.google.protobuf.ExtensionRegistry;
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.testng.reporters.Files;
 import protobuf_unittest.UnittestProto;
@@ -15,7 +14,6 @@ import java.math.BigInteger;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.testng.Assert.*;
 
 /**
  * @author scr on 10/13/15.
@@ -30,7 +28,7 @@ public class JsonJacksonFormatTest {
         JsonGenerator jsonGenerator = JSON_FACTORY.createGenerator(writer)
                 .setPrettyPrinter(new DefaultPrettyPrinter());
         JsonJacksonFormat jsonJacksonFormat =
-                (JsonJacksonFormat) new FormatFactory().createFormatter(FormatFactory.Formatter.JSON_JACKSON);
+                (JsonJacksonFormat) new FormatFactory().createFormatter(FormatFactory.Formatter.JSON_JACKSON).build();
         jsonJacksonFormat.print(UnittestProto.TestAllTypes.newBuilder()
                 .setOptionalForeignEnum(UnittestProto.ForeignEnum.FOREIGN_BAR)
                 .setOptionalFloat(0)
@@ -45,7 +43,7 @@ public class JsonJacksonFormatTest {
         StringWriter writer = new StringWriter();
         JsonGenerator jsonGenerator = JSON_FACTORY.createGenerator(writer);
         JsonJacksonFormat jsonJacksonFormat =
-                (JsonJacksonFormat) new FormatFactory().createFormatter(FormatFactory.Formatter.JSON_JACKSON);
+                (JsonJacksonFormat) new FormatFactory().createFormatter(FormatFactory.Formatter.JSON_JACKSON).build();
         final long maxIntAsLong = ((long) Integer.MAX_VALUE) << 1;
         final BigInteger maxLongAsBigInt = BigInteger.valueOf(Long.MAX_VALUE).shiftLeft(1);
         jsonJacksonFormat.print(UnittestProto.TestAllTypes.newBuilder()

@@ -29,6 +29,10 @@ package com.googlecode.protobuf.format;
 */
 
 
+import com.google.protobuf.*;
+import com.google.protobuf.Descriptors.EnumValueDescriptor;
+import com.google.protobuf.Descriptors.FieldDescriptor;
+
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.List;
@@ -36,15 +40,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.nio.CharBuffer;
 
-import com.google.protobuf.ByteString;
-import com.google.protobuf.Descriptors;
-import com.google.protobuf.ExtensionRegistry;
-import com.google.protobuf.Message;
-import com.google.protobuf.UnknownFieldSet;
-import com.google.protobuf.Descriptors.EnumValueDescriptor;
-import com.google.protobuf.Descriptors.FieldDescriptor;
 import static com.googlecode.protobuf.format.util.TextUtils.*;
 
 /**
@@ -61,6 +57,10 @@ import static com.googlecode.protobuf.format.util.TextUtils.*;
  * @author kenton@google.com Kenton Varda
  */
 public final class XmlFormat extends AbstractCharBasedFormatter {
+
+    public XmlFormat(EnumWriteMode enumWriteMode) {
+        super(enumWriteMode);
+    }
 
     /**
      * Outputs a textual representation of the Protocol Message supplied into the parameter output.
@@ -181,15 +181,20 @@ public final class XmlFormat extends AbstractCharBasedFormatter {
                 generator.print(escapeText((String) value));
                 break;
 
-            case BYTES: {
+            case BYTES:
                 generator.print(escapeBytes((ByteString) value));
                 break;
-            }
 
-            case ENUM: {
-                generator.print(((EnumValueDescriptor) value).getName());
+            case ENUM:
+                switch (enumWriteMode) {
+                    case NAME:
+                        generator.print(((EnumValueDescriptor) value).getName());
+                        break;
+                    case NUMBER:
+                        generator.print(unsignedToString(((EnumValueDescriptor) value).getNumber()));
+                        break;
+                }
                 break;
-            }
 
             case MESSAGE:
             case GROUP:

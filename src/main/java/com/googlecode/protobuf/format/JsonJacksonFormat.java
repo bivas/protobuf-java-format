@@ -28,7 +28,13 @@ package com.googlecode.protobuf.format;
 */
 
 
-import static com.googlecode.protobuf.format.util.TextUtils.*;
+import com.fasterxml.jackson.core.*;
+import com.google.protobuf.*;
+import com.google.protobuf.Descriptors.Descriptor;
+import com.google.protobuf.Descriptors.EnumDescriptor;
+import com.google.protobuf.Descriptors.EnumValueDescriptor;
+import com.google.protobuf.Descriptors.FieldDescriptor;
+import com.googlecode.protobuf.format.util.TextUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,17 +46,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import com.fasterxml.jackson.core.*;
-import com.google.protobuf.ByteString;
-import com.google.protobuf.Descriptors.Descriptor;
-import com.google.protobuf.Descriptors.EnumDescriptor;
-import com.google.protobuf.Descriptors.EnumValueDescriptor;
-import com.google.protobuf.Descriptors.FieldDescriptor;
-import com.google.protobuf.ExtensionRegistry;
-import com.google.protobuf.InvalidProtocolBufferException;
-import com.google.protobuf.Message;
-import com.google.protobuf.UnknownFieldSet;
-import com.googlecode.protobuf.format.util.TextUtils;
+import static com.googlecode.protobuf.format.util.TextUtils.unsignedLong;
 
 /**
  * Provide ascii text parsing and formatting support for proto2 instances. The implementation
@@ -71,6 +67,10 @@ public class JsonJacksonFormat extends ProtobufFormatter {
     private static final long MAX_UINT_VALUE = (((long) Integer.MAX_VALUE) << 1) + 1;
     private static final BigInteger MAX_ULONG_VALUE =
             BigInteger.valueOf(Long.MAX_VALUE).shiftLeft(1).add(BigInteger.ONE);
+
+    public JsonJacksonFormat(EnumWriteMode enumWriteMode) {
+        super(enumWriteMode);
+    }
 
     /**
      * Outputs a Smile representation of the Protocol Message supplied into the parameter output.
@@ -244,16 +244,21 @@ public class JsonJacksonFormat extends ProtobufFormatter {
             	generator.writeString((String) value);
                 break;
 
-            case BYTES: {
+            case BYTES:
             	// Here we break with JsonFormat - since there is an issue with non-utf8 bytes..
             	generator.writeBinary(((ByteString)value).toByteArray());
                 break;
-            }
 
-            case ENUM: {
-            	generator.writeString(((EnumValueDescriptor) value).getName());
+            case ENUM:
+                switch (enumWriteMode) {
+                    case NAME:
+                        generator.writeString(((EnumValueDescriptor) value).getName());
+                        break;
+                    case NUMBER:
+                        generator.writeNumber(((EnumValueDescriptor) value).getNumber());
+                        break;
+                }
                 break;
-            }
 
             case MESSAGE:
             case GROUP:

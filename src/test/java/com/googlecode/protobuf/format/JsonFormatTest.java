@@ -20,7 +20,7 @@ public class JsonFormatTest {
     private static final String RESOURCE_PATH = "/expectations/JsonFormatTest/";
     private static final FormatFactory FORMAT_FACTORY = new FormatFactory();
     private static final ProtobufFormatter JSON_FORMATTER =
-            FORMAT_FACTORY.createFormatter(FormatFactory.Formatter.JSON);
+            FORMAT_FACTORY.createFormatter(FormatFactory.Formatter.JSON).build();
 
     private static String getExpected(String name) throws IOException {
         return Files.readFile(JsonFormatTest.class.getResourceAsStream(RESOURCE_PATH + "test1.json")).trim();
