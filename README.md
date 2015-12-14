@@ -11,31 +11,36 @@ For XML output, use XmlFormat
 
 ```java
 Message someProto = SomeProto.getDefaultInstance();
-String xmlFormat = XmlFormat.printToString(someProto);
+XmlFormat xmlFormat = new XmlFormat();
+String asXml = xmlFormat.printToString(someProto);
 ```
 
 For XML input, use XmlFormat
 ```java
 Message.Builder builder = SomeProto.newBuilder();
-String xmlFormat = _load xml document from a source_;
-XmlFormat.merge(xmlFormat, builder);
+String asXml = _load xml document from a source_;
+XmlFormat xmlFormat = new XmlFormat();
+xmlFormat.merge(asXml, builder);
 ```
 
 For Json output, use JsonFormat
 ```java
 Message someProto = SomeProto.getDefaultInstance();
-String jsonFormat = JsonFormat.printToString(someProto);
+JsonFormat jsonFormat = new JsonFormat();
+String asJson = jsonFormat.printToString(someProto);
 ```
 
 For Json input, use JsonFormat
 ```java
 Message.Builder builder = SomeProto.newBuilder();
-String jsonFormat = _load json document from a source_;
-JsonFormat.merge(jsonFormat, builder);
+String asJson = _load json document from a source_;
+JsonFormat jsonFormat = new JsonFormat();
+jsonFormat.merge(asJson, builder);
 ```
 
 For HTML output, use HtmlFormat
 ```java
 Message someProto = SomeProto.getDefaultInstance();
-String htmlFormat = HtmlFormat.printToString(someProto);
+HtmlFormat htmlFormat = new HtmlFormat();
+String asHtml = htmlFormat.printToString(someProto);
 ```
