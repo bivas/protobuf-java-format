@@ -161,6 +161,7 @@
 								<exec executable="${protoc}" failonerror="true">
 									<arg value="--java_out=${project.build.directory}/generated-test-sources" />
 									<arg value="--proto_path=${project.basedir}/src/test/resources" />
+									<arg value="${project.basedir}/src/test/resources/proto/issue23.proto" />
 									<arg value="${project.basedir}/src/test/resources/proto/unittest.proto" />
 									<arg value="${project.basedir}/src/test/resources/proto/unittest_import.proto" />
 									<arg value="${project.basedir}/src/test/resources/proto/unittest_couchdb.proto" />
