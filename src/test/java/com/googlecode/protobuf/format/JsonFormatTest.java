@@ -52,8 +52,7 @@ public class JsonFormatTest {
         assertThat(formatter.printToString(input), is(expectedString));
     }
 
-    // TODO(scr): Re-enable test when the code is fixed to enable slurping unknown fields into the message.
-    @Test(enabled = false, description = "https://github.com/bivas/protobuf-java-format/issues/23")
+    @Test(enabled = true, description = "https://github.com/bivas/protobuf-java-format/issues/23")
     public void testIssue23() throws Exception {
         Issue23.MsgWithUnknownFields issue23Message = Issue23.MsgWithUnknownFields.newBuilder()
                 .setLeaf1("Hello")
