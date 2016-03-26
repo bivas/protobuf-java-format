@@ -9,3 +9,33 @@ message MsgWithUnknownFields {
   optional int32 leaf2 = 2;
   repeated int32 leaf3 = 3;
 }
+
+message OldTestMessage {
+  optional string knownfield = 1;
+}
+
+message NewTestMessage {
+  optional string knownfield = 1;
+  optional string unknownfieldstring_1 = 2;
+  repeated string unknownfieldstring_2 = 3;
+  optional InnerTestMessage unknownfield_message = 4;
+  optional int64 unknownfield_int64 = 5;
+  optional int32 unknownfield_int32 = 6;
+  optional float unknownfield_float = 7;
+  optional double unknownfield_double = 8;
+  repeated group UnknownGroup = 9 {
+    optional string name = 1;
+    optional float floatvalue = 2;
+    optional int32 intvalue = 3;
+    optional int64 longvalue = 4;
+  }
+  repeated InnerTestMessage unknownfield_repeated_message = 10;
+}
+
+message InnerTestMessage {
+    message InnerInnerTestMessage {
+      optional float value =1;
+    }
+    optional int64 value = 1;
+    optional InnerInnerTestMessage inner_message = 2;
+}
