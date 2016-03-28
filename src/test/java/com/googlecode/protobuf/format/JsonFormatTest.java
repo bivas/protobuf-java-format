@@ -5,9 +5,12 @@ import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.Message;
 import com.google.protobuf.UnknownFieldSet;
 import com.googlecode.protobuf.format.issue23.Issue23;
+
+import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.testng.reporters.Files;
+
 import protobuf_unittest.UnittestProto;
 import sun.nio.cs.StandardCharsets;
 
@@ -74,5 +77,18 @@ public class JsonFormatTest {
         Issue23.registerAllExtensions(extensionRegistry);
         JSON_FORMATTER.merge(message, extensionRegistry, issue23Builder);
         assertThat("No unknown field 4", issue23Builder.getUnknownFields().hasField(4));
+    }
+    
+    @Test(enabled = false, description = "escape/unescape should be inverses")
+    public void testReverseEscapeBytes() throws Exception {
+    	byte[] inBytes = {8, -110, -1, -1, -1, -1, -1, -1, -1, -1, 1};
+    	ByteString inByteString = ByteString.copyFrom(inBytes);
+    	String escaped = JsonFormat.escapeBytes(inByteString);
+    	ByteString outByteString = JsonFormat.unescapeBytes(escaped);
+    	byte[] outBytes = outByteString.toByteArray();
+    	
+    	Assert.assertTrue(Arrays.equals(inBytes, outBytes));
+    	
+    	
     }
 }
