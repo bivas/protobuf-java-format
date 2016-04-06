@@ -2,6 +2,8 @@ Fork from http://code.google.com/p/protobuf-java-format/
 
 [![Build Status](https://travis-ci.org/bivas/protobuf-java-format.svg?branch=master)](https://travis-ci.org/bivas/protobuf-java-format)
 
+See [http://bivas.github.io/protobuf-java-format/] for more information.
+
 ## Description
 
 Provide serialization and de-serialization of different formats based on Google’s protobuf Message. Enables overriding the default (byte array) output to text based formats such as XML, JSON and HTML.
