@@ -31,6 +31,8 @@ package com.googlecode.protobuf.format;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.CharBuffer;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
@@ -42,6 +44,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.google.protobuf.ByteString;
+import com.google.protobuf.Descriptors.FieldDescriptor.Type;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
@@ -515,6 +518,8 @@ public class JsonFormat extends AbstractCharBasedFormatter {
 
             return ("true".equals(currentToken) || "false".equals(currentToken));
         }
+        
+        
 
         /**
          * @return currentToken to which the Tokenizer is pointing.
@@ -618,7 +623,7 @@ public class JsonFormat extends AbstractCharBasedFormatter {
                 return Double.NaN;
             }
             try {
-                double result = Double.parseDouble(prepareNumberFromString(currentToken));
+                double result = parseDoubleOrFixed64(prepareNumberFromString(currentToken));
                 nextToken();
                 return result;
             } catch (NumberFormatException e) {
@@ -643,7 +648,7 @@ public class JsonFormat extends AbstractCharBasedFormatter {
                 return Float.NaN;
             }
             try {
-                float result = Float.parseFloat(prepareNumberFromString(currentToken));
+                float result = parseFloatOrFixed32(prepareNumberFromString(currentToken));
                 nextToken();
                 return result;
             } catch (NumberFormatException e) {
@@ -806,7 +811,14 @@ public class JsonFormat extends AbstractCharBasedFormatter {
         FieldDescriptor field;
         Descriptor type = builder.getDescriptorForType();
         ExtensionRegistry.ExtensionInfo extension = null;
-        boolean unknown = false;
+        
+        // this is true if a field matches the unknown field format in the JSON,
+        // but the field is recognized based on protos at merge time
+        boolean unknownInJSONOnly = false;
+        
+        // this is true if a field matches the unknown field format in the JSON,
+        // and the field is NOT recognized based on protos at merge time
+        boolean unknownInBothJSONAndProto = false;
 
         String name = tokenizer.consumeIdentifier();
         field = type.findFieldByName(name);
@@ -832,9 +844,19 @@ public class JsonFormat extends AbstractCharBasedFormatter {
 
         // Last try to lookup by field-index if 'name' is numeric,
         // which indicates a possible unknown field
-        if (field == null && TextUtils.isDigits(name)) {
-            field = type.findFieldByNumber(Integer.parseInt(name));
-            unknown = true;
+        if (field == null) {
+            try {
+	        	int fieldNumber = Integer.parseInt(name);
+	        	field = type.findFieldByNumber(fieldNumber);
+	            if (field != null) {
+	            	unknownInJSONOnly = true;
+	            } else {
+	            	unknownInBothJSONAndProto = true;
+	            	UnknownFieldSet.Builder unknownBuilder = builder.getUnknownFields().toBuilder();
+	            	handleUnknownField(tokenizer, fieldNumber, unknownBuilder);        		
+	        		builder.setUnknownFields(unknownBuilder.build());
+	            }
+            } catch (NumberFormatException e) {} // not an integer, skip
         }
 
         // Finally, look for extensions
@@ -848,12 +870,9 @@ public class JsonFormat extends AbstractCharBasedFormatter {
             field = extension.descriptor;
         }
 
-        // Disabled throwing exception if field not found, since it could be a different version.
-        if (field == null) {
+        // If field is not found and does not match unknown field format, consume it
+        if (field == null && !unknownInBothJSONAndProto) {
             handleMissingField(tokenizer, extensionRegistry, builder);
-            //throw tokenizer.parseExceptionPreviousToken("Message type \"" + type.getFullName()
-            //                                            + "\" has no field named \"" + name
-            //                                            + "\".");
         }
 
         if (field != null) {
@@ -862,11 +881,11 @@ public class JsonFormat extends AbstractCharBasedFormatter {
 
             if (array) {
                 while (!tokenizer.tryConsume("]")) {
-                    handleValue(tokenizer, extensionRegistry, builder, field, extension, unknown);
+                    handleValue(tokenizer, extensionRegistry, builder, field, extension, unknownInJSONOnly);
                     tokenizer.tryConsume(",");
                 }
             } else {
-                handleValue(tokenizer, extensionRegistry, builder, field, extension, unknown);
+                handleValue(tokenizer, extensionRegistry, builder, field, extension, unknownInJSONOnly);
             }
         }
 
@@ -874,6 +893,67 @@ public class JsonFormat extends AbstractCharBasedFormatter {
             // Continue with the next field
             mergeField(tokenizer, extensionRegistry, builder);
         }
+    }
+    
+    private void handleUnknownField(Tokenizer tokenizer,
+    		int fieldNumber,
+    		UnknownFieldSet.Builder fieldSetBuilder) throws ParseException {    	
+    	tokenizer.tryConsume(":");
+    	String currentToken = tokenizer.currentToken();
+    	if (tokenizer.tryConsume("{")) {
+    		// Group structure
+    		
+    		UnknownFieldSet.Builder groupBuilder = UnknownFieldSet.newBuilder();
+    		do {
+    			String name = tokenizer.consumeIdentifier();
+    			if (TextUtils.isDigits(name)) {
+    				int innerFieldNumber = Integer.parseInt(name);    				
+    				handleUnknownField(tokenizer, innerFieldNumber, groupBuilder);    				
+    			} else {
+    				throw new ParseException("Non-numberic field name found in unknown group");
+    			}    			
+    		} while (tokenizer.tryConsume(","));
+    		fieldSetBuilder.mergeField(
+					fieldNumber, 
+					UnknownFieldSet.Field
+						.newBuilder()
+						.addGroup(groupBuilder.build()).build());
+    		tokenizer.consume("}");
+    	} else if (tokenizer.tryConsume("[")) {
+    		// Collection    		
+    		do {
+    			handleUnknownField(tokenizer, fieldNumber, fieldSetBuilder);
+    		} while (tokenizer.tryConsume(","));
+    		tokenizer.consume("]");
+    	} else if (currentToken.length() > 0 && currentToken.startsWith("\"")) {
+    		ByteString data = tokenizer.consumeByteString();    		
+    		fieldSetBuilder.mergeField(fieldNumber, UnknownFieldSet.Field
+    				.newBuilder()
+    				.addLengthDelimited(data)
+    				.build());	 
+    	} else {
+    		// Must be varint, fixed32 or fixed64
+    		if (is32BitHex(currentToken)) {
+    			int fixed32 = tokenizer.consumeInt32();
+    			fieldSetBuilder.mergeField(fieldNumber, UnknownFieldSet.Field
+        				.newBuilder()
+        				.addFixed32(fixed32)
+        				.build());
+    		} else if (is64BitHex(currentToken)) {
+    			long fixed64 = tokenizer.consumeInt64();
+    			fieldSetBuilder.mergeField(fieldNumber, UnknownFieldSet.Field
+        				.newBuilder()
+        				.addFixed64(fixed64)
+        				.build());
+    		} else {
+    			// must be varint
+    			long varint = tokenizer.consumeInt64();
+    			fieldSetBuilder.mergeField(fieldNumber, UnknownFieldSet.Field
+        				.newBuilder()
+        				.addVarint(varint)
+        				.build());
+    		}
+    	}
     }
 
     private void handleMissingField(Tokenizer tokenizer,
@@ -1029,7 +1109,7 @@ public class JsonFormat extends AbstractCharBasedFormatter {
             subBuilder = extension.defaultInstance.newBuilderForType();
         }
 
-        if (unknown) {
+        if (unknown && field.getType() != Type.GROUP) {
             ByteString data = tokenizer.consumeByteString();
             try {
                 subBuilder.mergeFrom(data);
@@ -1205,8 +1285,8 @@ public class JsonFormat extends AbstractCharBasedFormatter {
                                 break;
                             case 'u':
                                 // UTF8 escape
-                                code = (16 * 3 * digitValue(input.charAt(i+1))) +
-                                        (16 * 2 * digitValue(input.charAt(i+2))) +
+                                code = (16 * 16 * 16 * digitValue(input.charAt(i+1))) +
+                                        (16 * 16 * digitValue(input.charAt(i+2))) +
                                         (16 * digitValue(input.charAt(i+3))) +
                                         digitValue(input.charAt(i+4));
                                 i = i+4;
@@ -1509,5 +1589,49 @@ public class JsonFormat extends AbstractCharBasedFormatter {
         }
 
         return numberText;
+    }
+    
+    /**
+     * @return true if input String can be parsed as 32-bit hex
+     */
+    private static boolean is32BitHex(String value) {
+    	return value.matches("0x[0-9a-fA-F]{8}");    	
+    }
+    
+    /**
+     * @return true if input String can be parsed as 64-bit hex
+     */
+    private static boolean is64BitHex(String value) {
+    	return value.matches("0x[0-9a-fA-F]{16}");    	
+    }
+     
+    private static float parseFloatOrFixed32(String value) {    	
+    	try {
+    		return(parseFloat(value));
+    	} catch (NumberFormatException e) {
+    		int intValue = parseInt32(value);    		
+    		ByteBuffer byteBuffer = (ByteBuffer)ByteBuffer
+        			.allocate(Integer.BYTES)
+        			.putInt(intValue)
+        			.order(ByteOrder.BIG_ENDIAN)
+        			.rewind();
+    		float f = byteBuffer.getFloat();
+    		return f;
+    	}
+    }
+    
+    private static double parseDoubleOrFixed64(String value) {
+    	try {
+    		return(parseDouble(value));
+    	} catch (NumberFormatException e) {
+    		long longValue = parseInt64(value);    		
+    		ByteBuffer byteBuffer = (ByteBuffer)ByteBuffer
+        			.allocate(Long.BYTES)
+        			.putLong(longValue)
+        			.order(ByteOrder.BIG_ENDIAN)
+        			.rewind();
+    		double d = byteBuffer.getDouble();
+    		return d;
+    	}
     }
 }
