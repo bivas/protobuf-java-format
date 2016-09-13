@@ -50,6 +50,8 @@ import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.EnumDescriptor;
 import com.google.protobuf.Descriptors.EnumValueDescriptor;
 import com.google.protobuf.Descriptors.FieldDescriptor;
+import com.googlecode.protobuf.format.bits.ByteSerializer;
+import com.googlecode.protobuf.format.bits.DefaultByteSerializer;
 import com.googlecode.protobuf.format.util.TextUtils;
 
 import static com.googlecode.protobuf.format.util.TextUtils.*;
@@ -68,6 +70,16 @@ import static com.googlecode.protobuf.format.util.TextUtils.*;
  * @author kenton@google.com Kenton Varda
  */
 public class JsonFormat extends AbstractCharBasedFormatter {
+
+    protected final ByteSerializer byteSerializer;
+
+    public JsonFormat(){
+        this(new DefaultByteSerializer());
+    }
+
+    public JsonFormat(ByteSerializer byteSerializer) {
+        this.byteSerializer = byteSerializer;
+    }
 
     /**
      * Outputs a textual representation of the Protocol Message supplied into the parameter output.
@@ -198,7 +210,7 @@ public class JsonFormat extends AbstractCharBasedFormatter {
 
             case BYTES: {
                 generator.print("\"");
-                generator.print(escapeBytes((ByteString) value));
+                generator.print(byteSerializer.escapeBytes((ByteString) value));
                 generator.print("\"");
                 break;
             }
@@ -362,6 +374,8 @@ public class JsonFormat extends AbstractCharBasedFormatter {
      */
     protected static class Tokenizer {
 
+        private final ByteSerializer byteSerializer;
+
         private final CharSequence text;
         private final Matcher matcher;
         private String currentToken;
@@ -402,7 +416,8 @@ public class JsonFormat extends AbstractCharBasedFormatter {
         /**
          * Construct a tokenizer that parses tokens from the given text.
          */
-        public Tokenizer(CharSequence text) {
+        public Tokenizer(ByteSerializer byteSerializer, CharSequence text) {
+            this.byteSerializer = byteSerializer;
             this.text = text;
             matcher = WHITESPACE.matcher(text);
             skipWhitespace();
@@ -717,7 +732,7 @@ public class JsonFormat extends AbstractCharBasedFormatter {
 
             try {
                 String escaped = currentToken.substring(1, currentToken.length() - 1);
-                ByteString result = unescapeBytes(escaped);
+                ByteString result = byteSerializer.unescapeBytes(escaped);
                 nextToken();
                 return result;
             } catch (InvalidEscapeSequence e) {
@@ -781,7 +796,7 @@ public class JsonFormat extends AbstractCharBasedFormatter {
     public void merge(CharSequence input,
                              ExtensionRegistry extensionRegistry,
                              Message.Builder builder) throws ParseException {
-        Tokenizer tokenizer = new Tokenizer(input);
+        Tokenizer tokenizer = new Tokenizer(byteSerializer, input);
 
         // Based on the state machine @ http://json.org/
 
@@ -1062,185 +1077,7 @@ public class JsonFormat extends AbstractCharBasedFormatter {
     // Some of these methods are package-private because Descriptors.java uses
     // them.
 
-    /**
-     * Escapes bytes in the format used in protocol buffer text format, which is the same as the
-     * format used for C string literals. All bytes that are not printable 7-bit ASCII characters
-     * are escaped, as well as backslash, single-quote, and double-quote characters. Characters for
-     * which no defined short-hand escape sequence is defined will be escaped using 3-digit octal
-     * sequences.
-     */
-    static String escapeBytes(ByteString input) {
-        StringBuilder builder = new StringBuilder(input.size());
-        for (int i = 0; i < input.size(); i++) {
-            byte b = input.byteAt(i);
-            switch (b) {
-                // Java does not recognize \a or \v, apparently.
-                case 0x07:
-                    builder.append("\\a");
-                    break;
-                case '\b':
-                    builder.append("\\b");
-                    break;
-                case '\f':
-                    builder.append("\\f");
-                    break;
-                case '\n':
-                    builder.append("\\n");
-                    break;
-                case '\r':
-                    builder.append("\\r");
-                    break;
-                case '\t':
-                    builder.append("\\t");
-                    break;
-                case 0x0b:
-                    builder.append("\\v");
-                    break;
-                case '\\':
-                    builder.append("\\\\");
-                    break;
-                case '\'':
-                    builder.append("\\\'");
-                    break;
-                case '"':
-                    builder.append("\\\"");
-                    break;
-                default:
-                    if (b >= 0x20) {
-                        builder.append((char) b);
-                    } else {
-						final String unicodeString = unicodeEscaped((char) b);
-						builder.append(unicodeString);
-                    }
-                    break;
-            }
-        }
-        return builder.toString();
-    }
 
-	static String unicodeEscaped(char ch) {
-		if (ch < 0x10) {
-			return "\\u000" + Integer.toHexString(ch);
-		} else if (ch < 0x100) {
-			return "\\u00" + Integer.toHexString(ch);
-		} else if (ch < 0x1000) {
-			return "\\u0" + Integer.toHexString(ch);
-		}
-		return "\\u" + Integer.toHexString(ch);
-	}
-
-    /**
-     * Un-escape a byte sequence as escaped using
-     * {@link #escapeBytes(com.googlecode.protobuf.format.ByteString)}. Two-digit hex escapes (starting with
-     * "\x") are also recognized.
-     */
-    static ByteString unescapeBytes(CharSequence input) throws InvalidEscapeSequence {
-        byte[] result = new byte[input.length()];
-        int pos = 0;
-        for (int i = 0; i < input.length(); i++) {
-            char c = input.charAt(i);
-            if (c == '\\') {
-                if (i + 1 < input.length()) {
-                    ++i;
-                    c = input.charAt(i);
-                    if (isOctal(c)) {
-                        // Octal escape.
-                        int code = digitValue(c);
-                        if ((i + 1 < input.length()) && isOctal(input.charAt(i + 1))) {
-                            ++i;
-                            code = code * 8 + digitValue(input.charAt(i));
-                        }
-                        if ((i + 1 < input.length()) && isOctal(input.charAt(i + 1))) {
-                            ++i;
-                            code = code * 8 + digitValue(input.charAt(i));
-                        }
-                        result[pos++] = (byte) code;
-                    } else {
-                        switch (c) {
-                            case 'a':
-                                result[pos++] = 0x07;
-                                break;
-                            case 'b':
-                                result[pos++] = '\b';
-                                break;
-                            case 'f':
-                                result[pos++] = '\f';
-                                break;
-                            case 'n':
-                                result[pos++] = '\n';
-                                break;
-                            case 'r':
-                                result[pos++] = '\r';
-                                break;
-                            case 't':
-                                result[pos++] = '\t';
-                                break;
-                            case 'v':
-                                result[pos++] = 0x0b;
-                                break;
-                            case '\\':
-                                result[pos++] = '\\';
-                                break;
-                            case '\'':
-                                result[pos++] = '\'';
-                                break;
-                            case '"':
-                                result[pos++] = '\"';
-                                break;
-
-                            case 'x':
-                                // hex escape
-                                int code = 0;
-                                if ((i + 1 < input.length()) && isHex(input.charAt(i + 1))) {
-                                    ++i;
-                                    code = digitValue(input.charAt(i));
-                                } else {
-                                    throw new InvalidEscapeSequence("Invalid escape sequence: '\\x' with no digits");
-                                }
-                                if ((i + 1 < input.length()) && isHex(input.charAt(i + 1))) {
-                                    ++i;
-                                    code = code * 16 + digitValue(input.charAt(i));
-                                }
-                                result[pos++] = (byte) code;
-                                break;
-                            case 'u':
-                                // UTF8 escape
-                                code = (16 * 3 * digitValue(input.charAt(i+1))) +
-                                        (16 * 2 * digitValue(input.charAt(i+2))) +
-                                        (16 * digitValue(input.charAt(i+3))) +
-                                        digitValue(input.charAt(i+4));
-                                i = i+4;
-                                result[pos++] = (byte) code;
-                                break;
-
-                            default:
-                                throw new InvalidEscapeSequence("Invalid escape sequence: '\\" + c
-                                                                + "'");
-                        }
-                    }
-                } else {
-                    throw new InvalidEscapeSequence("Invalid escape sequence: '\\' at end of string.");
-                }
-            } else {
-                result[pos++] = (byte) c;
-            }
-        }
-
-        return ByteString.copyFrom(result, 0, pos);
-    }
-
-    /**
-     * Thrown by {@link JsonFormat#unescapeBytes} and {@link JsonFormat#unescapeText} when an
-     * invalid escape sequence is seen.
-     */
-    static class InvalidEscapeSequence extends IOException {
-
-		private static final long serialVersionUID = 1L;
-
-		public InvalidEscapeSequence(String description) {
-            super(description);
-        }
-    }
 
     /**
      * Implements JSON string escaping as specified <a href="http://www.ietf.org/rfc/rfc4627.txt">here</a>.
