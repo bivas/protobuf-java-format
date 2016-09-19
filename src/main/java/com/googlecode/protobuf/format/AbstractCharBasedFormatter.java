@@ -47,6 +47,18 @@ public abstract class AbstractCharBasedFormatter extends ProtobufFormatter {
 	abstract public void print(UnknownFieldSet fields, Appendable output) throws IOException;
 
 	@Override
+	public String printToString(Message message) {
+		StringBuilder output = new StringBuilder();
+		try {
+			print(message, output);
+		} catch (IOException e) {
+			throw new RuntimeException("Writing to a StringBuilder threw an IOException (should never happen).",
+					e);
+		}
+		return output.toString();
+	}
+
+	@Override
 	public void merge(InputStream input, Charset cs, 
 			ExtensionRegistry extensionRegistry, Builder builder) throws IOException {
 		InputStreamReader reader = new InputStreamReader(input, cs);

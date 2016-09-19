@@ -9,6 +9,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.testng.reporters.Files;
 import protobuf_unittest.UnittestProto;
+import protobuf_unittest.UnittestProto.OneString;
 import sun.nio.cs.StandardCharsets;
 
 import java.io.IOException;
@@ -85,5 +86,16 @@ public class JsonFormatTest {
         final UnittestProto.TestNullField actual = builder.build();
         System.out.println(actual);
         assertThat(actual, equalTo(UnittestProto.TestNullField.newBuilder().build()));
+    }
+
+    @Test
+    public void testSerializeToStringDoesNotRequireAnyEncoding() {
+        String aChineseCharacter = "\u2F76";
+        Charset encodingThatDoesntSupportChineseCharacters = Charset.forName("ASCII");
+        JsonFormat jsonFomat = new JsonFormat();
+        jsonFomat.setDefaultCharset(encodingThatDoesntSupportChineseCharacters);
+        OneString message = OneString.newBuilder().setData(aChineseCharacter).build();
+
+        assertThat(jsonFomat.printToString(message), is("{\"data\": \""+aChineseCharacter + "\"}"));
     }
 }
