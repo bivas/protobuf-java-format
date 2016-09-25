@@ -539,6 +539,9 @@ public class JsonJacksonFormat extends ProtobufFormatter {
         }
 
         JsonToken token = parser.getCurrentToken();
+        if (JsonToken.VALUE_NULL == token) {
+            return null;
+        }
 
         if (unknown) {
         	ByteString data = ByteString.copyFrom(parser.getBinaryValue());

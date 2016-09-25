@@ -16,6 +16,7 @@ import java.io.StringBufferInputStream;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -74,5 +75,15 @@ public class JsonFormatTest {
         Issue23.registerAllExtensions(extensionRegistry);
         JSON_FORMATTER.merge(message, extensionRegistry, issue23Builder);
         assertThat("No unknown field 4", issue23Builder.getUnknownFields().hasField(4));
+    }
+
+    @Test
+    public void testDeserializeNullFieldFromJson() throws Exception {
+        UnittestProto.TestNullField.Builder builder = UnittestProto.TestNullField.newBuilder();
+        new JsonJacksonFormat().merge(JsonFormatTest.class.getResourceAsStream("/json_format_null_field_data.txt"), builder);
+
+        final UnittestProto.TestNullField actual = builder.build();
+        System.out.println(actual);
+        assertThat(actual, equalTo(UnittestProto.TestNullField.newBuilder().build()));
     }
 }
