@@ -88,7 +88,7 @@ public abstract class ProtobufFormatter {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             print(message, out, defaultCharset);
             out.flush();
-            return out.toString();
+            return out.toString(defaultCharset.name());
         } catch (IOException e) {
             throw new RuntimeException("Writing to a StringBuilder threw an IOException (should never happen).",
                                        e);

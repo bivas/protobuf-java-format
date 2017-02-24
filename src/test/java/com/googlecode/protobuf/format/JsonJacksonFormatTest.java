@@ -21,8 +21,13 @@ import static org.testng.Assert.*;
  * @author scr on 10/13/15.
  */
 @Test
-public class JsonJacksonFormatTest {
+public class JsonJacksonFormatTest extends ProtobufFormatterTest<JsonJacksonFormat> {
     private static final JsonFactory JSON_FACTORY = new JsonFactory();
+
+    @Override
+    protected JsonJacksonFormat getFormatterUnderTest() {
+        return new JsonJacksonFormat();
+    }
 
     @Test
     public void testPrettyPrint() throws Exception {

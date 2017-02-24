@@ -25,7 +25,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * @author scr on 10/13/15.
  */
 @Test
-public class JsonFormatTest {
+public class JsonFormatTest extends ProtobufFormatterTest<JsonFormat> {
     private static final String RESOURCE_PATH = "/expectations/JsonFormatTest/";
     private static final FormatFactory FORMAT_FACTORY = new FormatFactory();
     private static final JsonFormat JSON_FORMATTER =
@@ -33,6 +33,11 @@ public class JsonFormatTest {
 
     private static String getExpected(String name) throws IOException {
         return Files.readFile(JsonFormatTest.class.getResourceAsStream(RESOURCE_PATH + name)).trim();
+    }
+
+    @Override
+    protected JsonFormat getFormatterUnderTest() {
+        return new JsonFormat();
     }
 
     @DataProvider(name = "data")
