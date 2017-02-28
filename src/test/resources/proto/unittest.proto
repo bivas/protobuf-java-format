@@ -629,3 +629,7 @@ service TestService {
 
 message BarRequest  {}
 message BarResponse {}
+
+message TestNullField {
+  optional TestNullField field = 1;
+}
