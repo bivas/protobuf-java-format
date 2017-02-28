@@ -36,6 +36,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -146,7 +147,7 @@ public class JsonJacksonFormat extends ProtobufFormatter {
 
 
     protected JsonGenerator createGenerator(OutputStream output) throws IOException {
-        return createGenerator(output, Charset.forName(JsonEncoding.UTF8.getJavaName()));
+        return createGenerator(output, StandardCharsets.UTF_8);
     }
 
     private JsonGenerator createGenerator(OutputStream output, Charset cs) throws IOException {
