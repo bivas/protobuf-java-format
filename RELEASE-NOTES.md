@@ -1,4 +1,6 @@
 # Release Notes for protobuf-java-format
+* 1.5
+   * [#37](https://github.com/bivas/protobuf-java-format/pull/37) - Fix NPE during json deserialization.
 * 1.4
    * [#15](https://github.com/bivas/protobuf-java-format/issues/15) - Fix unsigned values for JacksonFormatter. 
 * 1.3
