@@ -902,7 +902,7 @@ public class JsonFormat extends AbstractCharBasedFormatter {
             } else if (tokenizer.lookingAtFloat()) {
                 tokenizer.consumeFloat();
             } else if (tokenizer.lookingAtInteger()) {
-                tokenizer.consumeInt64();
+                tokenizer.consumeDouble();
             } else if (tokenizer.lookingAtBoolean()) {
                 tokenizer.consumeBoolean();
             } else {
