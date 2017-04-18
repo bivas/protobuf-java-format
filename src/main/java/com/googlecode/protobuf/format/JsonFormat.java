@@ -806,7 +806,14 @@ public class JsonFormat extends AbstractCharBasedFormatter {
         FieldDescriptor field;
         Descriptor type = builder.getDescriptorForType();
         ExtensionRegistry.ExtensionInfo extension = null;
-        boolean unknown = false;
+        
+        // this is true if a field matches the unknown field format in the JSON,
+        // but the field is recognized based on protos at merge time
+        boolean unknownInJSONOnly = false;
+        
+        // this is true if a field matches the unknown field format in the JSON,
+        // and the field is NOT recognized based on protos at merge time
+        boolean unknownInBothJSONAndProto = false;
 
         String name = tokenizer.consumeIdentifier();
         field = type.findFieldByName(name);
@@ -833,8 +840,14 @@ public class JsonFormat extends AbstractCharBasedFormatter {
         // Last try to lookup by field-index if 'name' is numeric,
         // which indicates a possible unknown field
         if (field == null && TextUtils.isDigits(name)) {
-            field = type.findFieldByNumber(Integer.parseInt(name));
-            unknown = true;
+            int fieldNumber = Integer.parseInt(name);
+        	field = type.findFieldByNumber(fieldNumber);
+            if (field != null) {
+            	unknownInJSONOnly = true;
+            } else {
+            	unknownInBothJSONAndProto = true;
+            	handleUnknownField(tokenizer, builder, fieldNumber);
+            }
         }
 
         // Finally, look for extensions
@@ -848,12 +861,9 @@ public class JsonFormat extends AbstractCharBasedFormatter {
             field = extension.descriptor;
         }
 
-        // Disabled throwing exception if field not found, since it could be a different version.
-        if (field == null) {
+        // If field is not found and does not match unknown field format, consume it
+        if (field == null && !unknownInBothJSONAndProto) {
             handleMissingField(tokenizer, extensionRegistry, builder);
-            //throw tokenizer.parseExceptionPreviousToken("Message type \"" + type.getFullName()
-            //                                            + "\" has no field named \"" + name
-            //                                            + "\".");
         }
 
         if (field != null) {
@@ -862,11 +872,11 @@ public class JsonFormat extends AbstractCharBasedFormatter {
 
             if (array) {
                 while (!tokenizer.tryConsume("]")) {
-                    handleValue(tokenizer, extensionRegistry, builder, field, extension, unknown);
+                    handleValue(tokenizer, extensionRegistry, builder, field, extension, unknownInJSONOnly);
                     tokenizer.tryConsume(",");
                 }
             } else {
-                handleValue(tokenizer, extensionRegistry, builder, field, extension, unknown);
+                handleValue(tokenizer, extensionRegistry, builder, field, extension, unknownInJSONOnly);
             }
         }
 
@@ -874,6 +884,36 @@ public class JsonFormat extends AbstractCharBasedFormatter {
             // Continue with the next field
             mergeField(tokenizer, extensionRegistry, builder);
         }
+    }
+    
+    private void handleUnknownField(Tokenizer tokenizer,    										
+    		Message.Builder builder,
+    		int fieldNumber) throws ParseException {    	
+    	tokenizer.tryConsume(":");
+    	if ("{".equals(tokenizer.currentToken())) {
+    		// Message structure
+    		tokenizer.consume("{");
+    		do {
+    			tokenizer.consumeIdentifier();
+    			handleUnknownField(tokenizer, builder, fieldNumber);
+    		} while (tokenizer.tryConsume(","));
+    		tokenizer.consume("}");
+    	} else if ("[".equals(tokenizer.currentToken())) {
+    		// Collection
+    		tokenizer.consume("[");
+    		do {
+    			handleUnknownField(tokenizer, builder, fieldNumber);
+    		} while (tokenizer.tryConsume(","));
+    		tokenizer.consume("]");
+    	} else {
+    		ByteString data = tokenizer.consumeByteString();
+    		UnknownFieldSet.Builder unknownBuilder = builder.getUnknownFields().toBuilder();
+    		unknownBuilder.addField(fieldNumber, UnknownFieldSet.Field
+    				.newBuilder()
+    				.addLengthDelimited(data)
+    				.build());
+    		builder.setUnknownFields(unknownBuilder.build());	 
+    	}
     }
 
     private void handleMissingField(Tokenizer tokenizer,
