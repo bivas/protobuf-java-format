@@ -86,4 +86,10 @@ public class JsonFormatTest {
         System.out.println(actual);
         assertThat(actual, equalTo(UnittestProto.TestNullField.newBuilder().build()));
     }
+
+    @Test
+    public void testSkipUnknownFieldsFromJson() throws Exception {
+        UnittestProto.TestEmptyMessage.Builder builder = UnittestProto.TestEmptyMessage.newBuilder();
+        JSON_FORMATTER.merge(JsonFormatTest.class.getResourceAsStream("/json_format_unknown_fields_data.txt"), builder);
+    }
 }
