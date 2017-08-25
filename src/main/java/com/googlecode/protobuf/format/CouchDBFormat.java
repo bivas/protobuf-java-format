@@ -6,6 +6,7 @@ import java.io.IOException;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.Message;
 import com.google.protobuf.UnknownFieldSet;
+import com.googlecode.protobuf.format.bits.ByteSerializer;
 
 /**
  * Created by IntelliJ IDEA.
@@ -46,7 +47,7 @@ public class CouchDBFormat extends JsonFormat {
     public void merge(CharSequence input,
                              ExtensionRegistry extensionRegistry,
                              Message.Builder builder) throws ParseException {
-        Tokenizer tokenizer = new Tokenizer(input);
+        Tokenizer tokenizer = new Tokenizer(byteSerializer, input);
 
         // Based on the state machine @ http://json.org/
 
@@ -61,8 +62,8 @@ public class CouchDBFormat extends JsonFormat {
         /**
          * Construct a tokenizer that parses tokens from the given text.
          */
-        public Tokenizer(CharSequence text) {
-            super(text);
+        public Tokenizer(ByteSerializer byteSerializer, CharSequence text) {
+            super(byteSerializer, text);
         }
 
         @Override
