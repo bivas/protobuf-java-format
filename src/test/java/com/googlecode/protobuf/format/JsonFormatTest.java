@@ -103,4 +103,10 @@ public class JsonFormatTest extends ProtobufFormatterTest<JsonFormat> {
 
         assertThat(jsonFomat.printToString(message), is("{\"data\": \""+aChineseCharacter + "\"}"));
     }
+
+    @Test
+    public void testSkipUnknownFieldsFromJson() throws Exception {
+        UnittestProto.TestEmptyMessage.Builder builder = UnittestProto.TestEmptyMessage.newBuilder();
+        JSON_FORMATTER.merge(JsonFormatTest.class.getResourceAsStream("/json_format_unknown_fields_data.txt"), builder);
+    }
 }

@@ -905,7 +905,7 @@ public class JsonFormat extends AbstractCharBasedFormatter {
                 tokenizer.consumeInt64();
             } else if (tokenizer.lookingAtBoolean()) {
                 tokenizer.consumeBoolean();
-            } else {
+            } else if (tokenizer.currentToken().startsWith("'") || tokenizer.currentToken().startsWith("\"")) {
                 tokenizer.consumeString();
             }
         }
