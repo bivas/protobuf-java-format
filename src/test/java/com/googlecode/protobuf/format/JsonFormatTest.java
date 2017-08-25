@@ -4,17 +4,18 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.Message;
 import com.google.protobuf.UnknownFieldSet;
+import com.googlecode.protobuf.format.bits.Base64Serializer;
+import com.googlecode.protobuf.format.bits.HexByteSerializer;
 import com.googlecode.protobuf.format.issue23.Issue23;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.testng.reporters.Files;
 import protobuf_unittest.UnittestProto;
 import protobuf_unittest.UnittestProto.OneString;
-import sun.nio.cs.StandardCharsets;
+import java.nio.charset.StandardCharsets;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.StringBufferInputStream;
-import java.nio.charset.Charset;
 import java.util.Arrays;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -30,6 +31,8 @@ public class JsonFormatTest extends ProtobufFormatterTest<JsonFormat> {
     private static final FormatFactory FORMAT_FACTORY = new FormatFactory();
     private static final JsonFormat JSON_FORMATTER =
             (JsonFormat) FORMAT_FACTORY.createFormatter(FormatFactory.Formatter.JSON);
+    private static final JsonFormat JSON_HEX_FORMATTER = new JsonFormat(new HexByteSerializer());
+    private static final JsonFormat JSON_BASE64_FORMATTER = new JsonFormat(new Base64Serializer());
 
     private static String getExpected(String name) throws IOException {
         return Files.readFile(JsonFormatTest.class.getResourceAsStream(RESOURCE_PATH + name)).trim();
@@ -50,13 +53,41 @@ public class JsonFormatTest extends ProtobufFormatterTest<JsonFormat> {
                                 .build(),
                         JSON_FORMATTER,
                         getExpected("test1.json")},
+                {"test2_hex_bytes.json",
+                        UnittestProto.TestAllTypes.newBuilder()
+                                .setOptionalBytes(ByteString.copyFromUtf8("Hello!"))
+                                .build(),
+                        JSON_HEX_FORMATTER,
+                        getExpected("test2_hex_bytes.json")},
+                {"test3_base64_bytes.json",
+                        UnittestProto.TestAllTypes.newBuilder()
+                                .setOptionalBytes(ByteString.copyFromUtf8("Hello!"))
+                                .build(),
+                        JSON_BASE64_FORMATTER,
+                        getExpected("test3_base64_bytes.json")},
+                {"test4_default_bytes.json",
+                        UnittestProto.TestAllTypes.newBuilder()
+                                .setOptionalBytes(ByteString.copyFromUtf8("Hello!"))
+                                .build(),
+                        JSON_FORMATTER,
+                        getExpected("test4_default_bytes.json")},
         };
     }
 
     @Test(dataProvider = "data")
     public void testJsonFormat(
             String desc, Message input, ProtobufFormatter formatter, String expectedString) throws Exception {
+
         assertThat(formatter.printToString(input), is(expectedString));
+    }
+
+    @Test(dataProvider = "data")
+    public void testJsonFormatParsing(
+            String desc, Message input, ProtobufFormatter formatter, String expectedString) throws Exception {
+
+        UnittestProto.TestAllTypes.Builder builder = UnittestProto.TestAllTypes.newBuilder();
+        formatter.merge(new ByteArrayInputStream(expectedString.getBytes()), builder);
+        assertThat(builder.build(), is(input));
     }
 
     // TODO(scr): Re-enable test when the code is fixed to enable slurping unknown fields into the message.
@@ -96,7 +127,7 @@ public class JsonFormatTest extends ProtobufFormatterTest<JsonFormat> {
     @Test
     public void testSerializeToStringDoesNotRequireAnyEncoding() {
         String aChineseCharacter = "\u2F76";
-        Charset encodingThatDoesntSupportChineseCharacters = Charset.forName("ASCII");
+        Charset encodingThatDoesntSupportChineseCharacters = StandardCharsets.US_ASCII
         JsonFormat jsonFomat = new JsonFormat();
         jsonFomat.setDefaultCharset(encodingThatDoesntSupportChineseCharacters);
         OneString message = OneString.newBuilder().setData(aChineseCharacter).build();
