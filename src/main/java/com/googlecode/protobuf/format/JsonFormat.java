@@ -1037,6 +1037,10 @@ public class JsonFormat extends AbstractCharBasedFormatter {
                                        ExtensionRegistry.ExtensionInfo extension,
                                        boolean unknown) throws ParseException {
 
+        if ("null".equals(tokenizer.currentToken())) {
+            tokenizer.consume("null");
+            return null;
+        }
         Message.Builder subBuilder;
         if (extension == null) {
             subBuilder = builder.newBuilderForField(field);
