@@ -1,0 +1,44 @@
+rules:
+    rivi:
+        condition:
+            files:
+                patterns:
+                    - ".rivi.rules.yaml"
+        labeler:
+            label: rivi
+
+    build:
+        condition:
+            files:
+                patterns:
+                    - "pom.xml"
+                    - ".travis.yml"
+                    - "travis/"
+        labeler:
+            label: area/build
+
+    html:
+        condition:
+            files:
+                patterns:
+                    - "src/main/java/com/googlecode/protobuf/format/HtmlFormat.java"
+        labeler:
+            label: format/html
+
+    xml:
+        condition:
+            files:
+                patterns:
+                    - "src/main/java/com/googlecode/protobuf/format/Xml.*.java"
+        labeler:
+            label: format/xml
+
+    json:
+        condition:
+            files:
+                patterns:
+                    - "src/main/java/com/googlecode/protobuf/format/Json.*.java"
+                    - "src/main/java/com/googlecode/protobuf/format/CouchDB.*.java"
+                    - "src/main/java/com/googlecode/protobuf/format/Smile.*.java"
+        labeler:
+            label: format/json
