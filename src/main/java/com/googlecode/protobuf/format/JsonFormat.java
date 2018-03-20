@@ -1111,6 +1111,9 @@ public class JsonFormat extends AbstractCharBasedFormatter {
                 case '\\':
                   builder.append("\\\\");
                   break;
+	            case '/':
+		            builder.append("\\/");
+		            break;
                 case '"':
                   builder.append("\\\"");
                   break;
@@ -1177,6 +1180,9 @@ public class JsonFormat extends AbstractCharBasedFormatter {
             case '\\':
               builder.append('\\');
               break;
+            case '/':
+	            builder.append('/');
+	            break;
             case '"':
               builder.append('\"');
               break;
