@@ -216,9 +216,7 @@ public class JsonFormat extends AbstractCharBasedFormatter {
             }
 
             case ENUM: {
-                generator.print("\"");
-                generator.print(((EnumValueDescriptor) value).getName());
-                generator.print("\"");
+                generator.print(Integer.toString(((EnumValueDescriptor) value).getNumber()));
                 break;
             }
 
