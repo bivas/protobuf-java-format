@@ -39,44 +39,48 @@ public class JsonFormatTest {
     @DataProvider(name = "data")
     public static Object[][] data() throws IOException {
         return new Object[][]{
-                {"test1.json",
+                {
                         UnittestProto.TestAllTypes.newBuilder()
                                 .addAllRepeatedBool(Arrays.asList(true, false, true))
                                 .setOptionalForeignEnum(UnittestProto.ForeignEnum.FOREIGN_FOO)
                                 .build(),
                         JSON_FORMATTER,
-                        getExpected("test1.json")},
-                {"test2_hex_bytes.json",
+                        getExpected("test1.json")
+                }, {
                         UnittestProto.TestAllTypes.newBuilder()
                                 .setOptionalBytes(ByteString.copyFromUtf8("Hello!"))
                                 .build(),
                         JSON_HEX_FORMATTER,
-                        getExpected("test2_hex_bytes.json")},
-                {"test3_base64_bytes.json",
+                        getExpected("test2_hex_bytes.json")
+                }, {
                         UnittestProto.TestAllTypes.newBuilder()
                                 .setOptionalBytes(ByteString.copyFromUtf8("Hello!"))
                                 .build(),
                         JSON_BASE64_FORMATTER,
-                        getExpected("test3_base64_bytes.json")},
-                {"test4_default_bytes.json",
+                        getExpected("test3_base64_bytes.json")
+                }, {
                         UnittestProto.TestAllTypes.newBuilder()
                                 .setOptionalBytes(ByteString.copyFromUtf8("Hello!"))
                                 .build(),
                         JSON_FORMATTER,
-                        getExpected("test4_default_bytes.json")},
+                        getExpected("test4_default_bytes.json")
+                }, {
+                        UnittestProto.TestAllTypes.newBuilder()
+                                .setOptionalString("simple / string with \"escape chars'")
+                                .build(),
+                        JSON_FORMATTER,
+                        getExpected("escape_chars.json")
+                 }
         };
     }
 
     @Test(dataProvider = "data")
-    public void testJsonFormat(
-            String desc, Message input, ProtobufFormatter formatter, String expectedString) throws Exception {
-
+    public void testJsonFormat(Message input, ProtobufFormatter formatter, String expectedString) throws Exception {
         assertThat(formatter.printToString(input), is(expectedString));
     }
 
     @Test(dataProvider = "data")
-    public void testJsonFormatParsing(
-            String desc, Message input, ProtobufFormatter formatter, String expectedString) throws Exception {
+    public void testJsonFormatParsing(Message input, ProtobufFormatter formatter, String expectedString) throws Exception {
 
         UnittestProto.TestAllTypes.Builder builder = UnittestProto.TestAllTypes.newBuilder();
         formatter.merge(new ByteArrayInputStream(expectedString.getBytes()), builder);
