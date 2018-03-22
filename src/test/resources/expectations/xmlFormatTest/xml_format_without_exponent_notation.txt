@@ -1,0 +1,1 @@
+<MsgWithFields><decmialField>12345670678.0124</decmialField></MsgWithFields>
