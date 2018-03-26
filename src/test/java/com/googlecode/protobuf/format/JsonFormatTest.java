@@ -11,6 +11,8 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.testng.reporters.Files;
 import protobuf_unittest.UnittestProto;
+import protobuf_unittest.UnittestProto.OneString;
+import java.nio.charset.StandardCharsets;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -24,7 +26,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * @author scr on 10/13/15.
  */
 @Test
-public class JsonFormatTest {
+public class JsonFormatTest extends ProtobufFormatterTest<JsonFormat> {
     private static final String RESOURCE_PATH = "/expectations/JsonFormatTest/";
     private static final FormatFactory FORMAT_FACTORY = new FormatFactory();
     private static final JsonFormat JSON_FORMATTER =
@@ -34,6 +36,11 @@ public class JsonFormatTest {
 
     private static String getExpected(String name) throws IOException {
         return Files.readFile(JsonFormatTest.class.getResourceAsStream(RESOURCE_PATH + name)).trim();
+    }
+
+    @Override
+    protected JsonFormat getFormatterUnderTest() {
+        return new JsonFormat();
     }
 
     @DataProvider(name = "data")
@@ -119,6 +126,17 @@ public class JsonFormatTest {
         final UnittestProto.TestNullField actual = builder.build();
         System.out.println(actual);
         assertThat(actual, equalTo(UnittestProto.TestNullField.newBuilder().build()));
+    }
+
+    @Test
+    public void testSerializeToStringDoesNotRequireAnyEncoding() {
+        String aChineseCharacter = "\u2F76";
+        Charset encodingThatDoesntSupportChineseCharacters = StandardCharsets.US_ASCII
+        JsonFormat jsonFomat = new JsonFormat();
+        jsonFomat.setDefaultCharset(encodingThatDoesntSupportChineseCharacters);
+        OneString message = OneString.newBuilder().setData(aChineseCharacter).build();
+
+        assertThat(jsonFomat.printToString(message), is("{\"data\": \""+aChineseCharacter + "\"}"));
     }
 
     @Test

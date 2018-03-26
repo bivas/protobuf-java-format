@@ -33,8 +33,10 @@ import static com.googlecode.protobuf.format.util.TextUtils.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -78,7 +80,7 @@ public class JsonJacksonFormat extends ProtobufFormatter {
      * original Protocol Buffer system)
      */
     public void print(final Message message, OutputStream output, Charset cs) throws IOException {
-        JsonGenerator generator = createGenerator(output);
+        JsonGenerator generator = createGenerator(output, cs);
     	print(message, generator);
     	generator.close();
     }
@@ -144,9 +146,12 @@ public class JsonJacksonFormat extends ProtobufFormatter {
     }
 
 
-
     protected JsonGenerator createGenerator(OutputStream output) throws IOException {
-    	JsonGenerator generator = jsonFactory.createJsonGenerator(output, JsonEncoding.UTF8);
+        return createGenerator(output, StandardCharsets.UTF_8);
+    }
+
+    private JsonGenerator createGenerator(OutputStream output, Charset cs) throws IOException {
+    	JsonGenerator generator = jsonFactory.createGenerator(new OutputStreamWriter(output, cs));
     	generator.disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
     	return generator;
     }
