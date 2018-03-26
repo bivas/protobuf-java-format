@@ -1,0 +1,9 @@
+package issue;
+
+option optimize_for = SPEED;
+
+option java_package = "com.googlecode.protobuf.format.test";
+
+message MsgWithFields {
+    optional double decmialField = 1;
+}
