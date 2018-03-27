@@ -1,7 +1,7 @@
 package com.googlecode.protobuf.format;
 
 import com.google.protobuf.Descriptors;
-import com.googlecode.protobuf.format.test.Issue;
+import com.googlecode.protobuf.format.issue23.Issue23;
 import org.testng.annotations.Test;
 import org.testng.reporters.Files;
 
@@ -19,8 +19,8 @@ public class XmlFormatTest {
     @Test
     public void testDecimalFormat() throws IOException {
 
-        Issue.MsgWithFields msg = Issue.MsgWithFields.newBuilder()
-                .setDecmialField(12345670678.01245)
+        Issue23.MsgWithUnknownFields msg = Issue23.MsgWithUnknownFields.newBuilder()
+                .setLeaf4(12345670678.01245)
                 .build();
         XmlFormat xmlFormat = new XmlFormat();
 

@@ -1,1 +1,1 @@
-<MsgWithFields><decmialField>12345670678.0124</decmialField></MsgWithFields>
+<MsgWithUnknownFields><leaf4>12345670678.0124</leaf4></MsgWithUnknownFields>
