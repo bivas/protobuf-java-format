@@ -31,6 +31,9 @@ package com.googlecode.protobuf.format;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.text.DecimalFormat;
+import java.text.Format;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -38,11 +41,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.nio.CharBuffer;
 
-import com.google.protobuf.ByteString;
-import com.google.protobuf.Descriptors;
-import com.google.protobuf.ExtensionRegistry;
-import com.google.protobuf.Message;
-import com.google.protobuf.UnknownFieldSet;
+import com.google.protobuf.*;
 import com.google.protobuf.Descriptors.EnumValueDescriptor;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 import static com.googlecode.protobuf.format.util.TextUtils.*;
@@ -62,6 +61,7 @@ import static com.googlecode.protobuf.format.util.TextUtils.*;
  */
 public final class XmlFormat extends AbstractCharBasedFormatter {
 
+    public Map<FieldDescriptor.Type, Format> formatter = new HashMap<FieldDescriptor.Type, Format>();
     /**
      * Outputs a textual representation of the Protocol Message supplied into the parameter output.
      * (This representation is the new version of the classic "ProtocolPrinter" output from the
@@ -164,7 +164,10 @@ public final class XmlFormat extends AbstractCharBasedFormatter {
             case DOUBLE:
             case BOOL:
                 // Good old toString() does what we want for these types.
-                generator.print(value.toString());
+                if(formatter.containsKey(field.getType()))
+                    generator.print(formatter.get(field.getType()).format(value));
+                else
+                    generator.print(value.toString());
                 break;
 
             case UINT32:

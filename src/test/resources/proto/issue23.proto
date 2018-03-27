@@ -8,4 +8,5 @@ message MsgWithUnknownFields {
   optional string leaf1 = 1;
   optional int32 leaf2 = 2;
   repeated int32 leaf3 = 3;
+  optional double leaf4 = 4;
 }
