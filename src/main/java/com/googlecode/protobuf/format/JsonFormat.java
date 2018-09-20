@@ -31,7 +31,6 @@ package com.googlecode.protobuf.format;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.nio.CharBuffer;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.Iterator;
@@ -72,13 +71,23 @@ import static com.googlecode.protobuf.format.util.TextUtils.*;
 public class JsonFormat extends AbstractCharBasedFormatter {
 
     protected final ByteSerializer byteSerializer;
-
+    protected boolean enumByName = true;
+    
     public JsonFormat(){
         this(new DefaultByteSerializer());
     }
 
+    public JsonFormat(boolean enumByName){
+      this(new DefaultByteSerializer(), enumByName);
+    }
+
     public JsonFormat(ByteSerializer byteSerializer) {
         this.byteSerializer = byteSerializer;
+    }
+
+    public JsonFormat(ByteSerializer byteSerializer, boolean enumByName) {
+      this.byteSerializer = byteSerializer;
+      this.enumByName = enumByName;
     }
 
     /**
@@ -216,9 +225,13 @@ public class JsonFormat extends AbstractCharBasedFormatter {
             }
 
             case ENUM: {
-                generator.print("\"");
-                generator.print(((EnumValueDescriptor) value).getName());
-                generator.print("\"");
+                if(enumByName) {
+                  generator.print("\"");
+                  generator.print(((EnumValueDescriptor) value).getName());
+                  generator.print("\"");
+                } else {
+                  generator.print(Integer.toString(((EnumValueDescriptor) value).getNumber()));
+                }
                 break;
             }
 
