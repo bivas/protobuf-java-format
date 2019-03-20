@@ -35,6 +35,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import org.apache.commons.text.StringEscapeUtils;
+
 import com.google.protobuf.ByteString;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.Message;
@@ -493,7 +495,7 @@ public final class HtmlFormat extends AbstractCharBasedFormatter {
      * 3-digit octal escape. Yes, it's weird.
      */
     static String escapeText(String input) {
-        return escapeBytes(ByteString.copyFromUtf8(input));
+        return StringEscapeUtils.escapeHtml4(input);
     }
 
     /**
@@ -501,7 +503,7 @@ public final class HtmlFormat extends AbstractCharBasedFormatter {
      * (starting with "\x") are also recognized.
      */
     static String unescapeText(String input) throws InvalidEscapeSequence {
-        return unescapeBytes(input).toStringUtf8();
+        return StringEscapeUtils.unescapeHtml4(input);
     }
 
 
