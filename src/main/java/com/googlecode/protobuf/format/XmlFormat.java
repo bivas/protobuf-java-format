@@ -36,6 +36,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.commons.text.StringEscapeUtils;
+
 import java.nio.CharBuffer;
 
 import com.google.protobuf.ByteString;
@@ -1060,7 +1063,7 @@ public final class XmlFormat extends AbstractCharBasedFormatter {
      * 3-digit octal escape. Yes, it's weird.
      */
     static String escapeText(String input) {
-        return escapeBytes(ByteString.copyFromUtf8(input));
+        return StringEscapeUtils.escapeXml11(input);
     }
 
     /**
@@ -1068,7 +1071,7 @@ public final class XmlFormat extends AbstractCharBasedFormatter {
      * (starting with "\x") are also recognized.
      */
     static String unescapeText(String input) throws InvalidEscapeSequence {
-        return unescapeBytes(input).toStringUtf8();
+        return StringEscapeUtils.unescapeXml(input);
     }
 
 
